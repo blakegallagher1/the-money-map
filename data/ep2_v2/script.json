@@ -1,0 +1,58 @@
+{
+  "title": "Mortgage Rates Just Hit 6% — What This Really Means For Home Buyers",
+  "description": "📊 30-Year Mortgage Rate just dropped 11.5% year-over-year to 6.0 percent.\n\nIn this episode of The Money Map, we break down what's really happening with 30-year mortgage rate, how it connects to median home price, housing starts, federal funds rate, and what it means for ordinary Americans.\n\nAll data sourced from FRED (Federal Reserve Economic Data) — the same data the Fed uses.\n\nTimestamps:\n0:00 — The Number\n0:20 — What's Happening\n0:50 — The Full Chart\n1:30 — Connected Indicators\n2:20 — What This Means For You\n3:10 — The Takeaway\n\n🔔 Subscribe for weekly data-driven economic analysis.\n\n#economy #data #finance #themoneymap #economics #personalfinance",
+  "tags": [
+    "economy",
+    "economics",
+    "data",
+    "finance",
+    "money",
+    "30-yearmortgagerate",
+    "federal reserve",
+    "FRED data",
+    "personal finance",
+    "economic analysis",
+    "the money map",
+    "data visualization",
+    "economic data",
+    "recession",
+    "inflation",
+    "interest rates"
+  ],
+  "script": "6.0 percent.\n\n30-Year Mortgage Rate just dropped 11.5 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.\n\nRight now, 30-year mortgage rate stands at 6.0 percent. One year ago, it was at 6.8 percent. That's a 11.5 percent decline in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.\n\nWatch how 30-year mortgage rate has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.\n\nBut 30-year mortgage rate doesn't exist in isolation. To understand the full story, we need to look at what's connected. Median Home Price is currently at $405,300.00... that's down 3.3 percent year over year. Housing Starts is currently at 1.4 million... that's down 5.8 percent year over year. Federal Funds Rate is currently at 3.6 percent... that's down 15.9 percent year over year.\n\nWhen you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.\n\nLet's put this in real dollar terms. On a $400,000 home, the difference between last year's rate and today's rate saves a buyer roughly $200 per month on their mortgage payment. That's $72,000 over the life of the loan. But here's the catch... while rates have come down, home prices haven't followed. Sellers see lower rates and hold firm on asking prices. So the monthly payment might be lower, but the sticker price is still near record highs. For first-time buyers, the math is better than it was a year ago, but it's still historically expensive to buy a home in America.\n\nThat's the story behind 30-year mortgage rate right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one.",
+  "script_with_markers": "[COLD_OPEN]\n6.0 percent.\n\n[HOOK]\n30-Year Mortgage Rate just dropped 11.5 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.\n\n[THE_NUMBER]\nRight now, 30-year mortgage rate stands at 6.0 percent. One year ago, it was at 6.8 percent. That's a 11.5 percent decline in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.\n\n[CHART_WALK]\nWatch how 30-year mortgage rate has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.\n\n[CONTEXT]\nBut 30-year mortgage rate doesn't exist in isolation. To understand the full story, we need to look at what's connected. Median Home Price is currently at $405,300.00... that's down 3.3 percent year over year. Housing Starts is currently at 1.4 million... that's down 5.8 percent year over year. Federal Funds Rate is currently at 3.6 percent... that's down 15.9 percent year over year.\n\n[CONNECTED_DATA]\nWhen you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.\n\n[INSIGHT]\nLet's put this in real dollar terms. On a $400,000 home, the difference between last year's rate and today's rate saves a buyer roughly $200 per month on their mortgage payment. That's $72,000 over the life of the loan. But here's the catch... while rates have come down, home prices haven't followed. Sellers see lower rates and hold firm on asking prices. So the monthly payment might be lower, but the sticker price is still near record highs. For first-time buyers, the math is better than it was a year ago, but it's still historically expensive to buy a home in America.\n\n[CLOSE]\nThat's the story behind 30-year mortgage rate right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one.",
+  "sections": {
+    "cold_open": "6.0 percent.",
+    "hook": "30-Year Mortgage Rate just dropped 11.5 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.",
+    "the_number": "Right now, 30-year mortgage rate stands at 6.0 percent. One year ago, it was at 6.8 percent. That's a 11.5 percent decline in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.",
+    "chart_walk": "Watch how 30-year mortgage rate has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.",
+    "context": "But 30-year mortgage rate doesn't exist in isolation. To understand the full story, we need to look at what's connected. Median Home Price is currently at $405,300.00... that's down 3.3 percent year over year. Housing Starts is currently at 1.4 million... that's down 5.8 percent year over year. Federal Funds Rate is currently at 3.6 percent... that's down 15.9 percent year over year.",
+    "connected_data": "When you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.",
+    "insight": "Let's put this in real dollar terms. On a $400,000 home, the difference between last year's rate and today's rate saves a buyer roughly $200 per month on their mortgage payment. That's $72,000 over the life of the loan. But here's the catch... while rates have come down, home prices haven't followed. Sellers see lower rates and hold firm on asking prices. So the monthly payment might be lower, but the sticker price is still near record highs. For first-time buyers, the math is better than it was a year ago, but it's still historically expensive to buy a home in America.",
+    "close": "That's the story behind 30-year mortgage rate right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one."
+  },
+  "broll_prompts": {
+    "hook": "Aerial drone shot slowly flying over a suburban neighborhood of single-family homes at golden hour, neat rows of houses with green lawns, photorealistic cinematic",
+    "context": "Close-up of hands signing a mortgage document at a desk, pen on paper, official documents and keys visible, warm office lighting, photorealistic",
+    "insight": "A young couple standing outside a house with a SOLD sign, looking hopeful but uncertain, soft afternoon light, shallow depth of field, photorealistic emotional"
+  },
+  "word_count": 413,
+  "estimated_duration_sec": 165,
+  "primary_metric": {
+    "key": "mortgage_rate_30yr",
+    "name": "30-Year Mortgage Rate",
+    "series_id": "MORTGAGE30US",
+    "unit": "%",
+    "latest_value": 5.98,
+    "latest_date": "2026-02-26",
+    "yoy_change": -0.78,
+    "yoy_pct": -11.54,
+    "prev_year_value": 6.76,
+    "score": 65,
+    "tags": [
+      "significant_change",
+      "high_public_interest",
+      "very_fresh"
+    ]
+  }
+}
