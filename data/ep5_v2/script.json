@@ -1,0 +1,56 @@
+{
+  "title": "GDP Growth Just Collapsed 26% — Is A Recession Coming?",
+  "description": "📊 GDP Growth Rate just dropped 26.3% year-over-year to 1.4 percent.\n\nIn this episode of The Money Map, we break down what's really happening with gdp growth rate, how it connects to personal consumption, unemployment rate, consumer sentiment, and what it means for ordinary Americans.\n\nAll data sourced from FRED (Federal Reserve Economic Data) — the same data the Fed uses.\n\nTimestamps:\n0:00 — The Number\n0:20 — What's Happening\n0:50 — The Full Chart\n1:30 — Connected Indicators\n2:20 — What This Means For You\n3:10 — The Takeaway\n\n🔔 Subscribe for weekly data-driven economic analysis.\n\n#economy #data #finance #themoneymap #economics #personalfinance",
+  "tags": [
+    "economy",
+    "economics",
+    "data",
+    "finance",
+    "money",
+    "gdpgrowthrate",
+    "federal reserve",
+    "FRED data",
+    "personal finance",
+    "economic analysis",
+    "the money map",
+    "data visualization",
+    "economic data",
+    "recession",
+    "inflation",
+    "interest rates"
+  ],
+  "script": "1.4 percent.\n\nGDP Growth Rate just dropped 26.3 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.\n\nRight now, gdp growth rate stands at 1.4 percent. One year ago, it was at 1.9 percent. That's a 26.3 percent decline in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.\n\nWatch how gdp growth rate has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.\n\nBut gdp growth rate doesn't exist in isolation. To understand the full story, we need to look at what's connected. Personal Consumption is currently at $21.5 trillion... that's up 4.7 percent year over year. Unemployment Rate is currently at 4.3 percent... that's up 2.4 percent year over year. Consumer Sentiment is currently at 56.4... that's down 1.1 percent year over year.\n\nWhen you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.\n\nGDP growth at 1.4 percent is technically still positive... the economy is still expanding. But the trajectory matters more than the number itself. A year ago we were growing at 1.9 percent. That deceleration is significant. At this pace, the economy is barely keeping up with population growth. Historically, when GDP growth drops below 1.5 percent, the probability of entering a recession within the next 12 months rises sharply. We're not there yet. But the margin of safety is razor thin. One external shock... a trade war, a banking stress event, an oil spike... could tip the balance.\n\nThat's the story behind gdp growth rate right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one.",
+  "script_with_markers": "[COLD_OPEN]\n1.4 percent.\n\n[HOOK]\nGDP Growth Rate just dropped 26.3 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.\n\n[THE_NUMBER]\nRight now, gdp growth rate stands at 1.4 percent. One year ago, it was at 1.9 percent. That's a 26.3 percent decline in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.\n\n[CHART_WALK]\nWatch how gdp growth rate has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.\n\n[CONTEXT]\nBut gdp growth rate doesn't exist in isolation. To understand the full story, we need to look at what's connected. Personal Consumption is currently at $21.5 trillion... that's up 4.7 percent year over year. Unemployment Rate is currently at 4.3 percent... that's up 2.4 percent year over year. Consumer Sentiment is currently at 56.4... that's down 1.1 percent year over year.\n\n[CONNECTED_DATA]\nWhen you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.\n\n[INSIGHT]\nGDP growth at 1.4 percent is technically still positive... the economy is still expanding. But the trajectory matters more than the number itself. A year ago we were growing at 1.9 percent. That deceleration is significant. At this pace, the economy is barely keeping up with population growth. Historically, when GDP growth drops below 1.5 percent, the probability of entering a recession within the next 12 months rises sharply. We're not there yet. But the margin of safety is razor thin. One external shock... a trade war, a banking stress event, an oil spike... could tip the balance.\n\n[CLOSE]\nThat's the story behind gdp growth rate right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one.",
+  "sections": {
+    "cold_open": "1.4 percent.",
+    "hook": "GDP Growth Rate just dropped 26.3 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.",
+    "the_number": "Right now, gdp growth rate stands at 1.4 percent. One year ago, it was at 1.9 percent. That's a 26.3 percent decline in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.",
+    "chart_walk": "Watch how gdp growth rate has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.",
+    "context": "But gdp growth rate doesn't exist in isolation. To understand the full story, we need to look at what's connected. Personal Consumption is currently at $21.5 trillion... that's up 4.7 percent year over year. Unemployment Rate is currently at 4.3 percent... that's up 2.4 percent year over year. Consumer Sentiment is currently at 56.4... that's down 1.1 percent year over year.",
+    "connected_data": "When you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.",
+    "insight": "GDP growth at 1.4 percent is technically still positive... the economy is still expanding. But the trajectory matters more than the number itself. A year ago we were growing at 1.9 percent. That deceleration is significant. At this pace, the economy is barely keeping up with population growth. Historically, when GDP growth drops below 1.5 percent, the probability of entering a recession within the next 12 months rises sharply. We're not there yet. But the margin of safety is razor thin. One external shock... a trade war, a banking stress event, an oil spike... could tip the balance.",
+    "close": "That's the story behind gdp growth rate right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one."
+  },
+  "broll_prompts": {
+    "hook": "Time-lapse of a city skyline transitioning from busy daytime activity to evening, office lights flickering on, traffic flowing, photorealistic cinematic",
+    "context": "Close-up of a factory assembly line with robotic arms assembling products, sparks flying, industrial precision, cool blue lighting, photorealistic",
+    "insight": "Slow-motion shot of a 'CLOSED' sign being hung in a small business storefront window, empty street outside, melancholy natural lighting, photorealistic"
+  },
+  "word_count": 407,
+  "estimated_duration_sec": 162,
+  "primary_metric": {
+    "key": "gdp_growth",
+    "name": "GDP Growth Rate",
+    "series_id": "A191RL1Q225SBEA",
+    "unit": "%",
+    "latest_value": 1.4,
+    "latest_date": "2025-10-01",
+    "yoy_change": -0.5,
+    "yoy_pct": -26.32,
+    "prev_year_value": 1.9,
+    "score": 40,
+    "tags": [
+      "dramatic_change"
+    ]
+  }
+}
