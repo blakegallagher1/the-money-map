@@ -1,203 +1,269 @@
-# scripts/render_pilot.py
-# ─────────────────────────────────────────────
-# Render the PILOT episode for The Money Map
-# Hard-coded to 30-Year Mortgage Rate story
-# ─────────────────────────────────────────────
-
+"""
+Render pilot episode - optimized for sandbox speed.
+Renders at 5fps unique frames, outputs 30fps video via ffmpeg.
+"""
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import numpy as np
+import json
 import os
+import subprocess
+from datetime import datetime
 import sys
-import datetime
-import tempfile
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, '/home/user/workspace/the-money-map')
+from config.settings import COLORS
+from scripts.data_ingestion import FREDClient
+from scripts.story_discovery import build_story_package, find_related_series
+from scripts.script_writer import generate_script
 
-from config.settings import OUTPUT_DIR, GEMINI_API_KEY, TTS_VOICE
-from scripts.video_renderer import (
-    build_title_card, build_stat_callout, build_chart_clip,
-    build_comparison_dashboard, build_closing_card
-)
+plt.rcParams.update({
+    'figure.facecolor': COLORS['bg_dark'], 'axes.facecolor': COLORS['bg_dark'],
+    'axes.edgecolor': COLORS['border'], 'text.color': COLORS['text_primary'],
+    'axes.labelcolor': COLORS['text_secondary'], 'xtick.color': COLORS['text_muted'],
+    'ytick.color': COLORS['text_muted'], 'grid.color': COLORS['grid'], 'grid.alpha': 0.3,
+    'font.family': 'sans-serif', 'font.size': 14, 'axes.grid': True,
+    'grid.linestyle': '--', 'axes.spines.top': False, 'axes.spines.right': False,
+})
 
-import google.generativeai as genai
-genai.configure(api_key=GEMINI_API_KEY)
+pkg = build_story_package('/home/user/workspace/the-money-map/data/latest_data.json')
+script_data = generate_script(pkg)
+primary = script_data['primary_metric']
+client = FREDClient()
+series = client.get_series(primary['series_id'])
+observations = series['observations']
+with open('/home/user/workspace/the-money-map/data/latest_data.json') as f:
+    all_data = json.load(f)['data']
+related = find_related_series(primary['key'], all_data)
 
-# ── Pilot story data (hard-coded for demo) ────
+base = '/home/user/workspace/the-money-map/output/pilot'
+os.makedirs(base, exist_ok=True)
+RENDER_FPS = 5
 
-STORY = {
-    "key": "MORTGAGE_RATE_30Y",
-    "item": {
-        "label":        "30-Year Mortgage Rate",
-        "latest":       6.81,
-        "unit":         "%",
-        "yoy_pct":      -3.8,
-        "yoy_change":   -0.27,
-        "category":     "Housing",
-        "dates":        ["2023-01-01", "2023-02-01", "2023-03-01", "2023-04-01",
-                         "2023-05-01", "2023-06-01", "2023-07-01", "2023-08-01",
-                         "2023-09-01", "2023-10-01", "2023-11-01", "2023-12-01",
-                         "2024-01-01", "2024-02-01", "2024-03-01", "2024-04-01",
-                         "2024-05-01", "2024-06-01", "2024-07-01", "2024-08-01",
-                         "2024-09-01", "2024-10-01", "2024-11-01", "2024-12-01"],
-        "values":       [6.27, 6.65, 6.73, 6.79, 6.79, 6.71, 6.81, 7.09,
-                         7.20, 7.79, 7.44, 6.95, 6.62, 6.90, 6.87, 7.17,
-                         7.22, 7.03, 6.78, 6.50, 6.20, 6.72, 6.81, 6.97],
-    },
-    "related": [
-        {"key": "MORTGAGE_RATE_15Y", "label": "15-Year Mortgage Rate", "latest": 6.10, "unit": "%", "yoy_pct": -4.2},
-        {"key": "HOME_SALES_EXISTING", "label": "Existing Home Sales",  "latest": 3.96, "unit": "M", "yoy_pct": +2.9},
-        {"key": "HOUSING_STARTS",     "label": "Housing Starts",        "latest": 1354, "unit": "K", "yoy_pct": -4.1},
-    ],
-    "score": 87.4,
-    "category": "Housing",
-}
+def f2v(frame_dir, output_path):
+    subprocess.run(["ffmpeg", "-y", "-framerate", str(RENDER_FPS), "-i",
+        os.path.join(frame_dir, "frame_%04d.png"), "-c:v", "libx264", "-preset", "fast",
+        "-crf", "23", "-r", "30", "-pix_fmt", "yuv420p", output_path],
+        capture_output=True, text=True, timeout=300, check=True)
 
-SCRIPT = {
-    "title": "Mortgage Rates Hit 6.81%: Is Housing Finally Cooling Down?",
-    "hook":    "Mortgage rates are sitting at 6.81 percent — still more than double the lows we saw in 2021.",
-    "context": "For the average American buying a 400-thousand-dollar home, that means monthly payments are roughly 800 dollars higher than they were just three years ago. The Fed has paused rate hikes, but the housing market hasn't caught its breath yet.",
-    "related": "Meanwhile, 15-year mortgage rates are at 6.10 percent. Existing home sales inched up 2.9 percent year-over-year to 3.96 million — but housing starts fell 4.1 percent, meaning builders aren't keeping pace with demand.",
-    "insight":  "With rates above 6.5 percent, affordability remains near historic lows. Economists expect gradual rate relief in 2025, but a true housing recovery requires rates closer to 5 percent. Until then, the lock-in effect keeps inventory tight.",
-    "close":   "That's your Money Map for this week. If you want to understand where the economy is actually heading, hit subscribe — we drop new data every week.",
-    "script_text": "",
-    "tags": ["mortgage rates 2024", "housing market update", "30 year mortgage", "fed rate decision",
-             "housing affordability", "real estate 2024", "interest rates", "home prices",
-             "the money map", "economic data"],
-    "description": "Mortgage rates are at 6.81% — more than double the 2021 lows. We break down what this means for homebuyers, the housing market, and when rates might finally come down. Data sourced directly from the Federal Reserve (FRED).",
-    "segments": [
-        {"name": "hook",    "text": "Mortgage rates are sitting at 6.81 percent — still more than double the lows we saw in 2021."},
-        {"name": "context", "text": "For the average American buying a 400-thousand-dollar home, that means monthly payments are roughly 800 dollars higher than they were just three years ago. The Fed has paused rate hikes, but the housing market hasn't caught its breath yet."},
-        {"name": "related", "text": "Meanwhile, 15-year mortgage rates are at 6.10 percent. Existing home sales inched up 2.9 percent year-over-year to 3.96 million — but housing starts fell 4.1 percent, meaning builders aren't keeping pace with demand."},
-        {"name": "insight",  "text": "With rates above 6.5 percent, affordability remains near historic lows. Economists expect gradual rate relief in 2025, but a true housing recovery requires rates closer to 5 percent. Until then, the lock-in effect keeps inventory tight."},
-        {"name": "close",   "text": "That's your Money Map for this week. If you want to understand where the economy is actually heading, hit subscribe — we drop new data every week."},
-    ],
-}
+val = primary['latest_value']; unit = primary['unit']
+display_val = f"{val:.1f}%" if unit == '%' else f"${val:,.2f}"
+is_neg = primary['yoy_pct'] < 0
+neg_accent = COLORS['negative'] if is_neg else COLORS['positive']
+chart_accent = COLORS['negative'] if is_neg else COLORS['accent_teal']
+arrow = "▼" if is_neg else "▲"
 
-# Assemble full script text
-SCRIPT["script_text"] = " ".join(s["text"] for s in SCRIPT["segments"])
+# SCENE 1: TITLE (25 frames = 5s)
+print("Scene 1: Title...")
+d = os.path.join(base, "f_title"); os.makedirs(d, exist_ok=True)
+for i in range(25):
+    p = i/24
+    fig, ax = plt.subplots(figsize=(19.2, 10.8), dpi=100)
+    ax.set_xlim(0,1); ax.set_ylim(0,1); ax.axis('off')
+    fig.patch.set_facecolor(COLORS['bg_dark'])
+    ga = 0.06*min(p*3,1.0)
+    for x in np.arange(0,1.1,0.05):
+        ax.axvline(x, color=COLORS['accent_teal'], alpha=ga, lw=0.3)
+    for y in np.arange(0,1.1,0.05):
+        ax.axhline(y, color=COLORS['accent_teal'], alpha=ga, lw=0.3)
+    ta = min(p*2.5, 1.0)
+    if p > 0.1:
+        yo = max(0, 0.02*(1-min((p-0.1)*5,1.0)))
+        t = script_data['title']
+        if len(t) > 35 and '—' in t:
+            parts = t.split('—')
+            ax.text(0.5, 0.58+yo, parts[0].strip(), fontsize=40, fontweight='bold',
+                   ha='center', va='center', color=COLORS['text_primary'], alpha=ta)
+            ax.text(0.5, 0.47+yo, '— '+parts[1].strip(), fontsize=30,
+                   ha='center', va='center', color=COLORS['accent_coral'], alpha=ta)
+        else:
+            ax.text(0.5, 0.55+yo, t, fontsize=38, fontweight='bold',
+                   ha='center', va='center', color=COLORS['text_primary'], alpha=ta)
+    if p > 0.35:
+        ax.text(0.5, 0.37, f"Data as of {primary['latest_date']}", fontsize=18,
+               ha='center', color=COLORS['accent_teal'], alpha=min((p-0.35)*3,1.0))
+    if p > 0.2:
+        lp2 = min((p-0.2)*2.5,1.0); lw2 = 0.3*lp2
+        ax.plot([0.5-lw2/2, 0.5+lw2/2], [0.32,0.32], color=COLORS['accent_teal'], lw=2, alpha=0.8)
+    if p > 0.5:
+        ax.text(0.95, 0.05, "THE MONEY MAP", fontsize=12, ha='right',
+               color=COLORS['text_muted'], alpha=min((p-0.5)*3,1.0), fontweight='bold', style='italic')
+    plt.tight_layout(pad=0)
+    plt.savefig(os.path.join(d, f"frame_{i:04d}.png"), facecolor=fig.get_facecolor(), dpi=100)
+    plt.close(fig)
+f2v(d, os.path.join(base, "scene_01.mp4"))
+print("  Done")
 
+# SCENE 2: STAT CALLOUT (75 frames = 15s)
+print("Scene 2: Stat Callout...")
+d = os.path.join(base, "f_callout"); os.makedirs(d, exist_ok=True)
+for i in range(75):
+    p = i/74
+    fig, ax = plt.subplots(figsize=(19.2, 10.8), dpi=100)
+    ax.set_xlim(0,1); ax.set_ylim(0,1); ax.axis('off')
+    fig.patch.set_facecolor(COLORS['bg_dark'])
+    ga = 0.04+0.012*np.sin(p*3*np.pi)
+    for x in np.arange(0,1.1,0.04):
+        ax.axvline(x, color=neg_accent, alpha=ga, lw=0.2)
+    for y in np.arange(0,1.1,0.04):
+        ax.axhline(y, color=neg_accent, alpha=ga, lw=0.2)
+    if p > 0.05:
+        na = min((p-0.05)*3,1.0)
+        sc = 1.0+max(0, 0.12*(1-min((p-0.05)*4,1.0)))
+        ax.text(0.5, 0.55, display_val, fontsize=int(72*sc), fontweight='bold',
+               ha='center', va='center', color=COLORS['text_primary'], alpha=na)
+    if p > 0.2:
+        ax.text(0.5, 0.38, primary['name'].upper(), fontsize=22, ha='center',
+               color=COLORS['text_secondary'], alpha=min((p-0.2)*3,1.0), fontweight='bold')
+    if p > 0.35:
+        ax.text(0.5, 0.27, f"{arrow} {abs(primary['yoy_pct']):.1f}% Year Over Year",
+               fontsize=24, ha='center', color=neg_accent, alpha=min((p-0.35)*3,1.0), fontweight='bold')
+    ax.text(0.95, 0.04, "THE MONEY MAP", fontsize=11, ha='right',
+           color=COLORS['text_muted'], alpha=0.4, fontweight='bold')
+    plt.tight_layout(pad=0)
+    plt.savefig(os.path.join(d, f"frame_{i:04d}.png"), facecolor=fig.get_facecolor(), dpi=100)
+    plt.close(fig)
+f2v(d, os.path.join(base, "scene_02.mp4"))
+print("  Done")
 
-# ── TTS ───────────────────────────────────────
+# SCENE 3: MAIN CHART (250 frames = 50s)
+print("Scene 3: Main Chart...")
+d = os.path.join(base, "f_chart"); os.makedirs(d, exist_ok=True)
+dates_raw = [datetime.strptime(o['date'], '%Y-%m-%d') for o in observations][::-1]
+vals_raw = [o['value'] for o in observations][::-1]
+n = len(vals_raw); ymin = min(vals_raw)*0.92; ymax = max(vals_raw)*1.08
 
-def generate_tts(text: str, out_path: str) -> str:
-    """Generate TTS audio using Gemini and save as MP3 to out_path."""
-    import wave, struct
+for i in range(250):
+    p = i/249
+    show = max(2, int(p*n*1.05)); show = min(show, n)
+    fig, ax = plt.subplots(figsize=(19.2, 10.8), dpi=100)
+    fig.patch.set_facecolor(COLORS['bg_dark'])
+    ax.text(0.02, 1.08, primary['name'].upper(), transform=ax.transAxes,
+           fontsize=26, fontweight='bold', color=COLORS['text_primary'], va='top')
+    if p > 0.15:
+        lv = vals_raw[show-1]
+        vs2 = f"{lv:.1f}%" if unit=='%' else f"${lv:,.0f}"
+        ax.text(0.02, 1.02, f"Latest: {vs2}", transform=ax.transAxes,
+               fontsize=17, color=chart_accent, va='top')
+    xd = dates_raw[:show]; yd = vals_raw[:show]
+    ax.plot(xd, yd, color=chart_accent, lw=2.5, solid_capstyle='round', zorder=3)
+    ax.fill_between(xd, ymin, yd, alpha=0.06, color=chart_accent)
+    if len(xd) > 0:
+        ax.scatter([xd[-1]], [yd[-1]], color=chart_accent, s=60, zorder=5, edgecolors='white', linewidths=1.5)
+        ax.scatter([xd[-1]], [yd[-1]], color=chart_accent, s=180, alpha=0.15, zorder=4)
+    ax.set_xlim(dates_raw[0], dates_raw[-1]); ax.set_ylim(ymin, ymax)
+    if unit == '%': ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f%%'))
+    ax.text(0.99, -0.07, "Source: FRED (Federal Reserve Economic Data)", transform=ax.transAxes,
+           fontsize=10, color=COLORS['text_muted'], ha='right', va='top')
+    ax.text(0.01, -0.07, "THE MONEY MAP", transform=ax.transAxes, fontsize=10,
+           color=COLORS['text_muted'], ha='left', va='top', fontweight='bold')
+    plt.tight_layout(pad=2)
+    plt.savefig(os.path.join(d, f"frame_{i:04d}.png"), facecolor=fig.get_facecolor(), dpi=100)
+    plt.close(fig)
+    if i % 50 == 0: print(f"  frame {i}/250")
+f2v(d, os.path.join(base, "scene_03.mp4"))
+print("  Done")
 
-    client = genai.Client()
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-preview-tts",
-        contents=text,
-        config=genai.types.GenerateContentConfig(
-            speech_config=genai.types.SpeechConfig(
-                voice_config=genai.types.VoiceConfig(
-                    prebuilt_voice_config=genai.types.PrebuiltVoiceConfig(
-                        voice_name=TTS_VOICE,
-                    )
-                )
-            )
-        ),
-    )
+# SCENE 4: COMPARISON (125 frames = 25s)
+print("Scene 4: Comparison...")
+d = os.path.join(base, "f_comp"); os.makedirs(d, exist_ok=True)
+comp = [{"name": primary['name'], "latest_value": primary['latest_value'],
+         "unit": primary['unit'], "yoy_pct": primary['yoy_pct']}]
+for r in related[:3]: comp.append(r)
+acols = [COLORS['accent_teal'], COLORS['accent_blue'], COLORS['accent_coral'], COLORS['accent_amber']]
 
-    audio_data = b""
-    for part in response.candidates[0].content.parts:
-        if part.inline_data:
-            audio_data += part.inline_data.data
+for i in range(125):
+    p = i/124
+    fig, ax = plt.subplots(figsize=(19.2, 10.8), dpi=100)
+    fig.patch.set_facecolor(COLORS['bg_dark']); ax.set_xlim(0,1); ax.set_ylim(0,1); ax.axis('off')
+    ax.text(0.5, 0.92, "THE CONNECTED INDICATORS", fontsize=28, fontweight='bold',
+           ha='center', color=COLORS['text_primary'], alpha=min(p*3,1.0), transform=ax.transAxes)
+    for j, m in enumerate(comp[:4]):
+        cp2 = max(0, min((p-0.12*j-0.15)*3, 1.0))
+        if cp2 <= 0: continue
+        yp = 0.72-j*0.17; col = acols[j%4]
+        ax.text(0.08, yp+0.02, m['name'], fontsize=19, fontweight='bold',
+               color=COLORS['text_primary'], alpha=cp2, transform=ax.transAxes, va='center')
+        v2 = m['latest_value']; u2 = m.get('unit','')
+        if u2=='%': vs3=f"{v2:.1f}%"
+        elif u2 in ('$','$/gallon'): vs3=f"${v2:,.2f}"
+        elif u2=='billions $': vs3=f"${v2/1000:.1f}T" if v2>=1000 else f"${v2:,.0f}B"
+        elif u2=='millions $': vs3=f"${v2/1e6:.1f}T" if v2>=1e6 else f"${v2/1000:,.0f}B"
+        else: vs3=f"{v2:,.1f}"
+        ax.text(0.92, yp+0.02, vs3, fontsize=21, fontweight='bold', color=col,
+               alpha=cp2, transform=ax.transAxes, ha='right', va='center')
+        yoy2 = m.get('yoy_pct')
+        if yoy2 is not None:
+            bc = COLORS['positive'] if yoy2>0 else COLORS['negative']
+            ar2 = "▲" if yoy2>0 else "▼"
+            ax.text(0.92, yp-0.025, f"{ar2} {abs(yoy2):.1f}% YoY", fontsize=13,
+                   color=bc, alpha=cp2*0.85, transform=ax.transAxes, ha='right', va='center')
+        ax.plot([0.08,0.92], [yp-0.055,yp-0.055], color=COLORS['border'],
+               lw=0.5, alpha=cp2*0.4, transform=ax.transAxes)
+    ax.text(0.5, 0.05, "Source: FRED  |  THE MONEY MAP", fontsize=11,
+           ha='center', color=COLORS['text_muted'], alpha=min(p*2,0.6), transform=ax.transAxes)
+    plt.tight_layout(pad=0)
+    plt.savefig(os.path.join(d, f"frame_{i:04d}.png"), facecolor=fig.get_facecolor(), dpi=100)
+    plt.close(fig)
+f2v(d, os.path.join(base, "scene_04.mp4"))
+print("  Done")
 
-    # Save as WAV then convert path (MoviePy reads WAV fine)
-    wav_path = out_path.replace(".mp3", ".wav")
-    with wave.open(wav_path, "w") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)   # 16-bit
-        wf.setframerate(24000)
-        wf.writeframes(audio_data)
+# SCENE 5: CLOSING (65 frames = 13s)
+print("Scene 5: Closing...")
+d = os.path.join(base, "f_close"); os.makedirs(d, exist_ok=True)
+for i in range(65):
+    p = i/64
+    fig, ax = plt.subplots(figsize=(19.2, 10.8), dpi=100)
+    ax.set_xlim(0,1); ax.set_ylim(0,1); ax.axis('off')
+    fig.patch.set_facecolor(COLORS['bg_dark'])
+    ga = 0.05*min(p*2,1.0)
+    for x in np.arange(0,1.1,0.05):
+        ax.axvline(x, color=COLORS['accent_teal'], alpha=ga, lw=0.3)
+    for y in np.arange(0,1.1,0.05):
+        ax.axhline(y, color=COLORS['accent_teal'], alpha=ga, lw=0.3)
+    ax.text(0.5, 0.58, "THE MONEY MAP", fontsize=52, fontweight='bold',
+           ha='center', color=COLORS['text_primary'], alpha=min(p*2,1.0))
+    if p > 0.2:
+        ax.text(0.5, 0.44, "Subscribe for weekly data-driven analysis", fontsize=20,
+               ha='center', color=COLORS['accent_teal'], alpha=min((p-0.2)*2.5,1.0))
+    if p > 0.3:
+        lp3 = min((p-0.3)*2,1.0); lw3 = 0.25*lp3
+        ax.plot([0.5-lw3/2, 0.5+lw3/2], [0.38,0.38], color=COLORS['accent_teal'], lw=2, alpha=0.7)
+    plt.tight_layout(pad=0)
+    plt.savefig(os.path.join(d, f"frame_{i:04d}.png"), facecolor=fig.get_facecolor(), dpi=100)
+    plt.close(fig)
+f2v(d, os.path.join(base, "scene_05.mp4"))
+print("  Done")
 
-    return wav_path
+# ASSEMBLE
+print("\nAssembling final video...")
+with open(os.path.join(base, "concat.txt"), 'w') as f:
+    for s in range(1, 6):
+        f.write(f"file 'scene_{s:02d}.mp4'\n")
 
+silent = os.path.join(base, "silent.mp4")
+subprocess.run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i",
+    os.path.join(base, "concat.txt"), "-c", "copy", silent],
+    capture_output=True, text=True, timeout=120, check=True, cwd=base)
 
-# ── Main render ───────────────────────────────
+vo = '/home/user/workspace/the-money-map/output/voiceover.mp3'
+final = '/home/user/workspace/the-money-map/output/pilot_episode.mp4'
 
-def render_pilot():
-    from moviepy.editor import concatenate_videoclips, AudioFileClip, CompositeVideoClip
+if os.path.exists(vo):
+    subprocess.run(["ffmpeg", "-y", "-i", silent, "-i", vo,
+        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+        "-map", "0:v:0", "-map", "1:a:0", "-shortest", final],
+        capture_output=True, text=True, timeout=120, check=True)
+else:
+    import shutil
+    shutil.copy2(silent, final)
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    video_path = os.path.join(OUTPUT_DIR, f"pilot_{timestamp}.mp4")
-    audio_path = os.path.join(OUTPUT_DIR, f"pilot_audio_{timestamp}.mp3")
-
-    print("=" * 60)
-    print("  THE MONEY MAP — PILOT RENDER")
-    print("=" * 60)
-
-    # ── 1. TTS ────────────────────────────────
-    print("\n[1/4] Generating TTS voiceover...")
-    audio_file = generate_tts(SCRIPT["script_text"], audio_path)
-    print(f"  Audio saved to {audio_file}")
-
-    # ── 2. Build video scenes ─────────────────
-    print("\n[2/4] Building video scenes...")
-    item = STORY["item"]
-
-    title_clip = build_title_card(
-        title=SCRIPT["title"],
-        indicator_label=item["label"],
-        latest_value=f"{item['latest']}{item['unit']}",
-        yoy_pct=item["yoy_pct"],
-        duration=4.0,
-    )
-    stat_clip = build_stat_callout(
-        label=item["label"],
-        value=f"{item['latest']}{item['unit']}",
-        yoy_pct=item["yoy_pct"],
-        context_text=SCRIPT["hook"] + " " + SCRIPT["context"],
-        duration=6.0,
-    )
-    chart_clip = build_chart_clip(
-        dates=item["dates"],
-        values=item["values"],
-        label=item["label"],
-        unit=item["unit"],
-        yoy_pct=item["yoy_pct"],
-        duration=10.0,
-    )
-    dashboard_clip = build_comparison_dashboard(
-        main_item=item,
-        related=STORY["related"],
-        duration=6.0,
-    )
-    closing_clip = build_closing_card(duration=4.0)
-    print("  Scenes built.")
-
-    # ── 3. Assemble with audio ─────────────────
-    print("\n[3/4] Assembling video with voiceover...")
-    video = concatenate_videoclips(
-        [title_clip, stat_clip, chart_clip, dashboard_clip, closing_clip],
-        method="compose"
-    )
-    audio = AudioFileClip(audio_file)
-    # Trim or pad video to match audio length
-    if audio.duration > video.duration:
-        from moviepy.editor import ColorClip
-        pad = ColorClip(size=(VIDEO_WIDTH, VIDEO_HEIGHT),
-                        color=hex_to_rgb(COLOR_BG),
-                        duration=audio.duration - video.duration)
-        video = concatenate_videoclips([video, pad])
-    else:
-        audio = audio.subclip(0, video.duration)
-    video = video.set_audio(audio)
-    print("  Assembly complete.")
-
-    # ── 4. Export ─────────────────────────────
-    print(f"\n[4/4] Exporting to {video_path}...")
-    video.write_videofile(
-        video_path,
-        fps=FPS,
-        codec="libx264",
-        audio_codec="aac",
-        temp_audiofile=os.path.join(OUTPUT_DIR, "temp_audio.m4a"),
-        remove_temp=True,
-        logger=None,
-    )
-    print(f"\n✓ Pilot video saved to:\n  {video_path}")
-    return video_path
-
-
-if __name__ == "__main__":
-    render_pilot()
+sz = os.path.getsize(final)/(1024*1024)
+dur = subprocess.run(["ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+    "-of", "csv=p=0", final], capture_output=True, text=True)
+print(f"\nFinal: {final}")
+print(f"Size: {sz:.1f} MB")
+print(f"Duration: {dur.stdout.strip()}s")
+print("PILOT EPISODE COMPLETE!")
