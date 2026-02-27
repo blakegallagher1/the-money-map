@@ -4,6 +4,8 @@ output/ep*/
 assets/broll_video/*.mp4
 assets/broll/*.png
 data/latest_data.json
+data/latest_script.json
+data/voiceover_script.txt
 data/*/voiceover.mp3
 data/*_v2/voiceover.mp3
 __pycache__/
