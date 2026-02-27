@@ -1,0 +1,6 @@
+fredapi
+google-generativeai
+moviepy
+Pillow
+google-api-python-client
+google-auth-oauthlib
