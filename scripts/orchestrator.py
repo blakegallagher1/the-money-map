@@ -77,15 +77,18 @@ def step_voiceover():
     log("STEP 4: Voiceover generation...")
     vo_path = os.path.join(OUTPUT_DIR, 'voiceover.mp3')
     script_path = os.path.join(DATA_DIR, 'voiceover_script.txt')
-    
+
     if os.path.exists(vo_path):
         age_hours = (time.time() - os.path.getmtime(vo_path)) / 3600
         if age_hours < 2:
             log(f"  Using existing voiceover ({age_hours:.1f}h old)")
             return vo_path
-    
-    log(f"  TTS needed for: {script_path}")
-    return {"needs_tts": True, "script_path": script_path, "output_path": vo_path}
+
+    from scripts.tts_generator import generate_voiceover
+    log("  Generating voiceover via OpenAI gpt-4o-mini-tts...")
+    result_path = generate_voiceover(script_path=script_path, output_path=vo_path)
+    log(f"  Voiceover saved: {result_path}")
+    return result_path
 
 
 def step_render():

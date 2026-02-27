@@ -51,9 +51,16 @@ print(f'Title: {script[\"title\"]}')
 "
 ```
 
-## Step 4: Generate Voiceover
-Use the text_to_speech tool to generate voiceover from data/voiceover_script.txt.
-Voice: charon (Gemini TTS). Save to output/voiceover.mp3.
+## Step 4: Generate Voiceover (Automated)
+Voiceover is now generated automatically via OpenAI gpt-4o-mini-tts.
+Requires OPENAI_API_KEY environment variable to be set.
+```
+python -c "
+from scripts.tts_generator import generate_voiceover
+path = generate_voiceover()
+print(f'Voiceover saved: {path}')
+"
+```
 
 ## Step 5: Render Video
 ```
