@@ -3,11 +3,31 @@ The Money Map — Configuration
 All API keys and channel settings.
 """
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- API Keys ---
 FRED_API_KEY = os.environ.get("FRED_API_KEY", "50f1b7098d9ae0eb17d5ec516b6df15e")
 CENSUS_API_KEY = os.environ.get("CENSUS_API_KEY", "")  # Pending email activation
 BLS_API_KEY = os.environ.get("BLS_API_KEY", "")  # Pending email activation
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+# --- TTS Settings (OpenAI gpt-4o-mini-tts) ---
+TTS_MODEL = "gpt-4o-mini-tts"
+TTS_VOICE = "ash"  # Deep, authoritative — closest match to prior "charon" voice
+TTS_INSTRUCTIONS = (
+    "Voice Affect: Confident, authoritative data journalist. "
+    "Think Bloomberg TV anchor meets accessible YouTuber.\n"
+    "Tone: Urgent but measured — convey that this data matters "
+    "without being alarmist.\n"
+    "Pacing: Moderate pace with deliberate pauses after key statistics. "
+    "Speed up slightly during context and background, slow down for the main reveal.\n"
+    "Emotion: Genuine surprise at dramatic numbers. Empathy when discussing "
+    "consumer impact. Excitement during the hook.\n"
+    "Emphasis: Hit numbers hard — pronounce dollar amounts and percentages "
+    "with weight. Pause briefly before and after the biggest stat."
+)
 
 # --- YouTube Channel ---
 YOUTUBE_CHANNEL_NAME = "The Money Map"
