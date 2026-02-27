@@ -13,3 +13,4 @@ tool_calls/
 output/voiceover.mp3
 output/channel_banner.png
 output/channel_logo.png
+.env

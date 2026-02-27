@@ -3,6 +3,9 @@ The Money Map — Configuration
 All API keys and channel settings.
 """
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- API Keys ---
 FRED_API_KEY = os.environ.get("FRED_API_KEY", "50f1b7098d9ae0eb17d5ec516b6df15e")
