@@ -1,87 +1,90 @@
-# scripts/cron_instructions.py
-# ─────────────────────────────────────────────
-# Instructions for scheduling the Money Map pipeline with cron
-# Run this script once to print the cron setup instructions
-# ─────────────────────────────────────────────
+"""
+The Money Map — Cron-Ready Pipeline Instructions
 
-import os
-import sys
-from pathlib import Path
+This file contains the instructions the Perplexity Computer cron agent
+will follow each week to produce and upload a new episode.
 
-REPO_DIR = Path(__file__).parent.parent.resolve()
-PYTHON   = sys.executable
-SCRIPT   = REPO_DIR / "scripts" / "orchestrator.py"
-LOG_DIR  = REPO_DIR / "output"
-LOG_FILE = LOG_DIR / "cron.log"
+The pipeline runs every Monday at 8:00 AM CST (14:00 UTC).
+"""
 
-CRON_LINE = f"0 9 * * 1 {PYTHON} {SCRIPT} >> {LOG_FILE} 2>&1"
+WEEKLY_PIPELINE_INSTRUCTIONS = """
+You are the automated producer for "The Money Map" YouTube channel.
+Run the full weekly episode pipeline:
 
-print("""
-╔══════════════════════════════════════════════════════════════╗
-║           THE MONEY MAP — CRON SETUP INSTRUCTIONS           ║
-╚══════════════════════════════════════════════════════════════╝
+## Step 1: Fetch Fresh Data
+```
+cd /home/user/workspace/the-money-map
+python -c "
+from scripts.data_ingestion import FREDClient
+import json
+client = FREDClient()
+result = client.fetch_all()
+with open('data/latest_data.json', 'w') as f:
+    json.dump(result, f, indent=2, default=str)
+print(f'Fetched {len(result[\"data\"])} indicators')
+"
+```
 
-The pipeline is designed to run once per week (Monday at 9 AM).
-It will automatically:
-  1. Pull fresh FRED economic data
-  2. Score and select the most viral story
-  3. Write the narration script with Gemini
-  4. Generate TTS voiceover (Gemini charon voice)
-  5. Render the full 90-second episode video
-  6. Generate the thumbnail
-  7. Upload to YouTube
+## Step 2: Discover Story
+```
+python -c "
+from scripts.story_discovery import build_story_package
+pkg = build_story_package('data/latest_data.json')
+print(f'Top story: {pkg[\"primary\"][\"name\"]}')
+print(f'YoY: {pkg[\"primary\"][\"yoy_pct\"]:.1f}%')
+"
+```
 
-─────────────────────────────────────────────
-STEP 1: Open your crontab
-─────────────────────────────────────────────
-  $ crontab -e
+## Step 3: Generate Script
+```
+python -c "
+from scripts.story_discovery import build_story_package
+from scripts.script_writer import generate_script
+import json
+pkg = build_story_package('data/latest_data.json')
+script = generate_script(pkg)
+with open('data/latest_script.json', 'w') as f:
+    json.dump(script, f, indent=2)
+with open('data/voiceover_script.txt', 'w') as f:
+    f.write(script['script'])
+print(f'Title: {script[\"title\"]}')
+"
+```
 
-─────────────────────────────────────────────
-STEP 2: Add this line
-─────────────────────────────────────────────
-""")
+## Step 4: Generate Voiceover
+Use the text_to_speech tool to generate voiceover from data/voiceover_script.txt.
+Voice: charon (Gemini TTS). Save to output/voiceover.mp3.
 
-print(f"  {CRON_LINE}")
+## Step 5: Render Video
+```
+python scripts/render_pilot.py
+```
 
-print("""
-─────────────────────────────────────────────
-STEP 3: Save and verify
-─────────────────────────────────────────────
-  $ crontab -l
-  # You should see the line above
+## Step 6: Generate Thumbnail
+```
+python -c "
+from scripts.thumbnail_gen import generate_thumbnail
+import json
+with open('data/latest_script.json') as f:
+    script = json.load(f)
+generate_thumbnail(script, 'output/thumbnail.png')
+"
+```
 
-─────────────────────────────────────────────
-STEP 4: Test a manual run first
-─────────────────────────────────────────────
-""")
+## Step 7: Upload to YouTube
+- URL: https://studio.youtube.com
+- Login: yredstick@gmail.com / Nola0528!
+- Upload: output/pilot_episode.mp4
+- Title/description from data/latest_script.json
+- Thumbnail: output/thumbnail.png
+- Not made for kids, Public visibility
+- Publish
 
-print(f"  $ {PYTHON} {SCRIPT} --dry-run")
+## Step 8: Notify
+Send a notification with the episode title and YouTube link.
+"""
 
-print("""
-─────────────────────────────────────────────
-ENVIRONMENT VARIABLES (add to ~/.bashrc or .env)
-─────────────────────────────────────────────
-  export FRED_API_KEY="your_fred_api_key"
-  export GEMINI_API_KEY="your_gemini_api_key"
-  export YOUTUBE_CLIENT_SECRETS_FILE="/path/to/client_secrets.json"
-
-─────────────────────────────────────────────
-OUTPUT LOCATION
-─────────────────────────────────────────────
-""")
-
-print(f"  Videos:     {LOG_DIR}/*.mp4")
-print(f"  Thumbnails: {LOG_DIR}/*.png")
-print(f"  Logs:       {LOG_FILE}")
-
-print("""
-─────────────────────────────────────────────
-NOTES
-─────────────────────────────────────────────
-  - First run requires YouTube OAuth2 browser authentication
-  - Subsequent runs use stored token.json credentials
-  - FRED API is free with no rate limits for this volume
-  - Gemini TTS uses ~500 tokens per episode
-  - Video rendering takes ~2-5 minutes on a modern CPU
-═══════════════════════════════════════════════════════════════
-""")
+if __name__ == "__main__":
+    print("The Money Map — Cron Pipeline Instructions")
+    print("=" * 50)
+    print(WEEKLY_PIPELINE_INSTRUCTIONS)

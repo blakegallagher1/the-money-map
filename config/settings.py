@@ -1,116 +1,103 @@
-# config/settings.py
-# ─────────────────────────────────────────────
-# Central configuration for The Money Map pipeline
-# ─────────────────────────────────────────────
-
+"""
+The Money Map — Configuration
+All API keys and channel settings.
+"""
 import os
 
-# ── API Keys ──────────────────────────────────
-FRED_API_KEY = os.getenv("FRED_API_KEY", "YOUR_FRED_API_KEY_HERE")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
-YOUTUBE_CLIENT_SECRETS_FILE = os.getenv("YOUTUBE_CLIENT_SECRETS_FILE", "client_secrets.json")
-YOUTUBE_CREDENTIALS_FILE = os.getenv("YOUTUBE_CREDENTIALS_FILE", "token.json")
+# --- API Keys ---
+FRED_API_KEY = os.environ.get("FRED_API_KEY", "50f1b7098d9ae0eb17d5ec516b6df15e")
+CENSUS_API_KEY = os.environ.get("CENSUS_API_KEY", "")  # Pending email activation
+BLS_API_KEY = os.environ.get("BLS_API_KEY", "")  # Pending email activation
 
-# ── Output ────────────────────────────────────
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+# --- YouTube Channel ---
+YOUTUBE_CHANNEL_NAME = "The Money Map"
+YOUTUBE_CHANNEL_ID = ""  # Will be populated after OAuth setup
 
-# ── Video Dimensions ──────────────────────────
+# --- Content Settings ---
 VIDEO_WIDTH = 1920
 VIDEO_HEIGHT = 1080
 FPS = 30
+VIDEO_DURATION_TARGET = 180  # Target ~3 minutes per video
+FONT_FAMILY = "DejaVu Sans"
 
-# ── Brand Colors ──────────────────────────────
-COLOR_BG        = "#0A0E1A"   # deep navy background
-COLOR_ACCENT    = "#00D4FF"   # electric cyan
-COLOR_POSITIVE  = "#00FF88"   # green for good news
-COLOR_NEGATIVE  = "#FF4444"   # red for bad news
-COLOR_NEUTRAL   = "#FFB800"   # amber for neutral
-COLOR_TEXT      = "#FFFFFF"   # white text
-COLOR_SUBTEXT   = "#8892A4"   # muted subtext
-COLOR_GRID      = "#1A2035"   # subtle grid lines
+# --- Color Palette (Dark, Cinematic, Data-Viz Optimized) ---
+COLORS = {
+    "bg_dark": "#0A0A0F",
+    "bg_card": "#12121A",
+    "bg_gradient_start": "#0A0A0F",
+    "bg_gradient_end": "#1A1A2E",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#8B8BA3",
+    "text_muted": "#5A5A72",
+    "accent_teal": "#00D4AA",
+    "accent_blue": "#4A9EFF",
+    "accent_coral": "#FF6B6B",
+    "accent_amber": "#FFB84D",
+    "accent_purple": "#A855F7",
+    "accent_green": "#22C55E",
+    "grid": "#1E1E2E",
+    "border": "#2A2A3E",
+    "positive": "#22C55E",
+    "negative": "#EF4444",
+}
 
-# ── TTS Voice ─────────────────────────────────
-TTS_VOICE = "charon"   # Gemini TTS voice
-
-# ── FRED Series IDs ───────────────────────────
-# 34 curated economic indicators
+# --- FRED Series Library (curated for viral potential) ---
 FRED_SERIES = {
-    # Housing
-    "MORTGAGE_RATE_30Y":     {"series_id": "MORTGAGE30US",  "label": "30-Year Mortgage Rate",         "unit": "%",  "category": "Housing"},
-    "MORTGAGE_RATE_15Y":     {"series_id": "MORTGAGE15US",  "label": "15-Year Mortgage Rate",         "unit": "%",  "category": "Housing"},
-    "HOME_SALES_EXISTING":   {"series_id": "EXHOSLUSM495S", "label": "Existing Home Sales",           "unit": "M",  "category": "Housing"},
-    "HOME_SALES_NEW":        {"series_id": "HSN1F",         "label": "New Home Sales",                "unit": "K",  "category": "Housing"},
-    "HOUSING_STARTS":        {"series_id": "HOUST",         "label": "Housing Starts",                "unit": "K",  "category": "Housing"},
-    "CASE_SHILLER_HPI":      {"series_id": "CSUSHPISA",     "label": "Case-Shiller Home Price Index", "unit": "",   "category": "Housing"},
-    # Inflation
-    "CPI_ALL":               {"series_id": "CPIAUCSL",      "label": "CPI (All Items)",               "unit": "",   "category": "Inflation"},
-    "CPI_CORE":              {"series_id": "CPILFESL",      "label": "Core CPI",                      "unit": "",   "category": "Inflation"},
-    "PCE":                   {"series_id": "PCE",           "label": "Personal Consumption Expenditures","unit": "B", "category": "Inflation"},
-    "PPI_ALL":               {"series_id": "PPIACO",        "label": "PPI (All Commodities)",         "unit": "",   "category": "Inflation"},
-    # Employment
-    "UNEMPLOYMENT_RATE":     {"series_id": "UNRATE",        "label": "Unemployment Rate",             "unit": "%",  "category": "Employment"},
-    "NONFARM_PAYROLLS":      {"series_id": "PAYEMS",        "label": "Nonfarm Payrolls",              "unit": "K",  "category": "Employment"},
-    "JOB_OPENINGS":          {"series_id": "JTSJOL",        "label": "Job Openings",                  "unit": "K",  "category": "Employment"},
-    "QUITS_RATE":            {"series_id": "JTSQUR",        "label": "Quits Rate",                    "unit": "%",  "category": "Employment"},
-    # GDP
-    "REAL_GDP":              {"series_id": "GDPC1",         "label": "Real GDP",                      "unit": "B",  "category": "GDP"},
-    "GDP_GROWTH":            {"series_id": "A191RL1Q225SBEA","label": "Real GDP Growth Rate",         "unit": "%",  "category": "GDP"},
-    "GDP_PER_CAPITA":        {"series_id": "A939RX0Q048SBEA","label": "Real GDP Per Capita",          "unit": "$",  "category": "GDP"},
-    # Consumer
-    "RETAIL_SALES":          {"series_id": "RSAFS",         "label": "Retail Sales",                  "unit": "M",  "category": "Consumer"},
-    "CONSUMER_SENTIMENT":    {"series_id": "UMCSENT",       "label": "Consumer Sentiment",            "unit": "",   "category": "Consumer"},
-    "CREDIT_CARD_DELINQ":    {"series_id": "DRCCLACBS",     "label": "Credit Card Delinquency Rate",  "unit": "%",  "category": "Consumer"},
-    "PERSONAL_SAVINGS":      {"series_id": "PSAVERT",       "label": "Personal Savings Rate",         "unit": "%",  "category": "Consumer"},
-    # Debt
-    "FEDERAL_DEBT":          {"series_id": "GFDEBTN",       "label": "Federal Debt",                  "unit": "M",  "category": "Debt"},
-    "HOUSEHOLD_DEBT":        {"series_id": "HDTGPDUSQ163N", "label": "Household Debt to GDP",         "unit": "%",  "category": "Debt"},
-    "STUDENT_LOANS":         {"series_id": "SLOAS",         "label": "Student Loan Debt",             "unit": "M",  "category": "Debt"},
-    # Banking
-    "FED_FUNDS_RATE":        {"series_id": "FEDFUNDS",      "label": "Federal Funds Rate",            "unit": "%",  "category": "Banking"},
-    "M2_MONEY_SUPPLY":       {"series_id": "M2SL",          "label": "M2 Money Supply",               "unit": "B",  "category": "Banking"},
-    "TREASURY_10Y":          {"series_id": "GS10",          "label": "10-Year Treasury Yield",        "unit": "%",  "category": "Banking"},
-    "TREASURY_2Y":           {"series_id": "GS2",           "label": "2-Year Treasury Yield",         "unit": "%",  "category": "Banking"},
-    "YIELD_CURVE":           {"series_id": "T10Y2Y",        "label": "10Y-2Y Yield Curve Spread",     "unit": "%",  "category": "Banking"},
-    # Business
-    "ISM_MANUFACTURING":     {"series_id": "MANEMP",        "label": "Manufacturing Employment",      "unit": "K",  "category": "Business"},
-    "DURABLE_GOODS":         {"series_id": "DGORDER",       "label": "Durable Goods Orders",          "unit": "M",  "category": "Business"},
-    "INDUSTRIAL_PRODUCTION": {"series_id": "INDPRO",        "label": "Industrial Production Index",   "unit": "",   "category": "Business"},
-    # Market
-    "SP500":                 {"series_id": "SP500",         "label": "S&P 500",                       "unit": "",   "category": "Market"},
-    "WILSHIRE5000":          {"series_id": "WILL5000PR",    "label": "Wilshire 5000",                 "unit": "",   "category": "Market"},
+    # Housing & Real Estate
+    "median_home_price": {"id": "MSPUS", "name": "Median Home Price", "unit": "$"},
+    "mortgage_rate_30yr": {"id": "MORTGAGE30US", "name": "30-Year Mortgage Rate", "unit": "%"},
+    "housing_starts": {"id": "HOUST", "name": "Housing Starts", "unit": "thousands"},
+    "home_ownership_rate": {"id": "RHORUSQ156N", "name": "Home Ownership Rate", "unit": "%"},
+    "case_shiller": {"id": "CSUSHPINSA", "name": "Case-Shiller Home Price Index", "unit": "index"},
+    
+    # Inflation & Prices
+    "cpi": {"id": "CPIAUCSL", "name": "Consumer Price Index", "unit": "index"},
+    "cpi_food": {"id": "CPIUFDSL", "name": "CPI: Food", "unit": "index"},
+    "cpi_energy": {"id": "CPIENGSL", "name": "CPI: Energy", "unit": "index"},
+    "pce": {"id": "PCEPI", "name": "PCE Price Index", "unit": "index"},
+    "gas_price": {"id": "GASREGW", "name": "Regular Gas Price", "unit": "$/gallon"},
+    
+    # Labor & Income  
+    "unemployment_rate": {"id": "UNRATE", "name": "Unemployment Rate", "unit": "%"},
+    "labor_force_participation": {"id": "CIVPART", "name": "Labor Force Participation", "unit": "%"},
+    "median_income": {"id": "MEHOINUSA672N", "name": "Median Household Income", "unit": "$"},
+    "avg_hourly_earnings": {"id": "CES0500000003", "name": "Avg Hourly Earnings", "unit": "$"},
+    "initial_claims": {"id": "ICSA", "name": "Initial Jobless Claims", "unit": "thousands"},
+    "job_openings": {"id": "JTSJOL", "name": "Job Openings", "unit": "thousands"},
+    
+    # GDP & Economy
+    "real_gdp": {"id": "GDPC1", "name": "Real GDP", "unit": "billions $"},
+    "gdp_growth": {"id": "A191RL1Q225SBEA", "name": "GDP Growth Rate", "unit": "%"},
+    "consumer_spending": {"id": "PCE", "name": "Personal Consumption", "unit": "billions $"},
+    "consumer_confidence": {"id": "UMCSENT", "name": "Consumer Sentiment", "unit": "index"},
+    
+    # Money & Rates
+    "fed_funds_rate": {"id": "FEDFUNDS", "name": "Federal Funds Rate", "unit": "%"},
+    "treasury_10yr": {"id": "DGS10", "name": "10-Year Treasury Yield", "unit": "%"},
+    "treasury_2yr": {"id": "DGS2", "name": "2-Year Treasury Yield", "unit": "%"},
+    "m2_money_supply": {"id": "M2SL", "name": "M2 Money Supply", "unit": "billions $"},
+    "national_debt": {"id": "GFDEBTN", "name": "Federal Debt", "unit": "millions $"},
+    
+    # Real Estate Specific
+    "cre_loan_delinquency": {"id": "DRCRELEXFACBS", "name": "CRE Loan Delinquency Rate", "unit": "%"},
+    "rental_vacancy": {"id": "RRVRUSQ156N", "name": "Rental Vacancy Rate", "unit": "%"},
+    "rent_cpi": {"id": "CUSR0000SEHA", "name": "CPI: Rent of Primary Residence", "unit": "index"},
+    "building_permits": {"id": "PERMIT", "name": "Building Permits", "unit": "thousands"},
+    
+    # Debt & Savings
+    "personal_savings_rate": {"id": "PSAVERT", "name": "Personal Savings Rate", "unit": "%"},
+    "consumer_credit": {"id": "TOTALSL", "name": "Total Consumer Credit", "unit": "millions $"},
+    "credit_card_delinquency": {"id": "DRCCLACBS", "name": "Credit Card Delinquency Rate", "unit": "%"},
+    "student_loan_debt": {"id": "SLOAS", "name": "Student Loan Debt", "unit": "billions $"},
+    "auto_loan_debt": {"id": "MVLOAS", "name": "Motor Vehicle Loans", "unit": "billions $"},
 }
 
-# ── Story Score Weights ────────────────────────
-STORY_WEIGHTS = {
-    "magnitude":       0.35,   # how big is the YoY change?
-    "public_interest": 0.25,   # does it affect everyday Americans?
-    "pain_point":      0.20,   # does it hurt people's wallets?
-    "freshness":       0.20,   # how recent is the data?
-}
-
-# Public interest scores by category (0–1)
-PUBLIC_INTEREST = {
-    "Housing":    0.95,
-    "Inflation":  0.90,
-    "Employment": 0.85,
-    "Consumer":   0.80,
-    "Debt":       0.75,
-    "Banking":    0.70,
-    "GDP":        0.65,
-    "Business":   0.60,
-    "Market":     0.55,
-}
-
-# Pain point scores by category (0–1)
-PAIN_POINT = {
-    "Housing":    1.00,
-    "Inflation":  0.95,
-    "Employment": 0.90,
-    "Consumer":   0.85,
-    "Debt":       0.80,
-    "Banking":    0.60,
-    "GDP":        0.40,
-    "Business":   0.35,
-    "Market":     0.30,
+# --- Story Templates (narrative frameworks for different data patterns) ---
+STORY_TEMPLATES = {
+    "surge": "rapid increase in {metric} — what's driving it and what it means for Americans",
+    "collapse": "dramatic decline in {metric} — who's being hit hardest",
+    "divergence": "{metric_a} and {metric_b} are moving in opposite directions — here's why that's a warning sign",
+    "milestone": "{metric} just hit a level not seen since {year} — here's the context",
+    "comparison": "comparing {metric} across the last 3 recessions tells a surprising story",
+    "acceleration": "{metric} isn't just changing — it's changing faster than ever",
 }

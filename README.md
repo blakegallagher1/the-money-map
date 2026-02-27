@@ -1,90 +1,83 @@
 # The Money Map 📊
 
-**Fully automated YouTube channel that produces weekly data-driven economic analysis videos.**
-
-The Money Map pulls real-time economic data from the Federal Reserve (FRED), discovers the most compelling story, writes a narration script, generates AI voiceover, renders animated data visualization videos, and uploads to YouTube — all on autopilot.
-
-## How It Works
-
-```
-FRED API → Story Discovery → Script Writer → TTS Voiceover → Video Renderer → YouTube Upload
-```
-
-Each week, the pipeline:
-
-1. **Fetches fresh data** from 34 curated FRED economic indicators (housing, inflation, employment, GDP, debt, etc.)
-2. **Scores stories** by viral potential — magnitude of change, public interest, consumer pain points, data freshness
-3. **Writes a narration script** with a Hook → Context → Related Indicators → Insight → Close structure
-4. **Generates AI voiceover** using Gemini TTS (charon voice)
-5. **Renders animated data visualizations** — title card, stat callout, animated line chart, comparison dashboard, closing
-6. **Generates a clickbait-resistant thumbnail** with the key stat and YoY change
-7. **Uploads to YouTube** with optimized title, description, and tags
+Fully automated YouTube channel that turns Federal Reserve economic data into cinematic, data-driven video content.
 
 ## Architecture
 
 ```
-the-money-map/
-├── config/
-│   └── settings.py          # API keys, 34 FRED series, color palette, story templates
-├── scripts/
-│   ├── data_ingestion.py    # FREDClient — fetches all 34 indicators with YoY calculations
-│   ├── story_discovery.py   # Scores stories by viral potential, finds related indicators
-│   ├── script_writer.py     # Generates narration scripts from story packages
-│   ├── episode_renderer.py  # Generalized renderer — produces any episode from a story key
-│   ├── thumbnail_gen.py     # Generates thumbnails with key stat and YoY change
-│   ├── youtube_uploader.py  # Uploads video + thumbnail to YouTube with metadata
-│   ├── orchestrator.py      # Full pipeline — runs weekly on cron
-│   └── cron_instructions.py # How to schedule the pipeline
-└── requirements.txt
+FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover (TTS)
+                                                    ↓
+                              Enhanced Renderer → AI B-Roll → Final Assembly → YouTube
 ```
 
-## Quick Start
+## Pipeline Modules
 
-### 1. Install dependencies
+| Module | File | Description |
+|--------|------|-------------|
+| Data Ingestion | `scripts/data_ingestion.py` | Pulls 34 FRED economic indicators with YoY calculations |
+| Story Discovery | `scripts/story_discovery.py` | Scores each metric for viral potential, picks top story |
+| Script Writer V1 | `scripts/script_writer.py` | ~250 word scripts (~1:30 videos) |
+| Script Writer V2 | `scripts/enhanced_script_writer.py` | ~400-420 word scripts with section markers & b-roll cues |
+| Renderer V1 | `scripts/render_pilot.py` | Basic 5fps matplotlib → 30fps video |
+| Renderer V2 | `scripts/enhanced_renderer.py` | Cinematic renderer with glowing effects, animated counters, Ken Burns zoom, particle effects |
+| Thumbnail V1 | `scripts/thumbnail_gen.py` | Basic stat-focused thumbnails |
+| Thumbnail V2 | `scripts/enhanced_thumbnail.py` | High-CTR thumbnails with bold headlines, curiosity gap design |
+| Final Assembly | `scripts/final_assembly.py` | Interleaves data-viz with AI b-roll, layers voiceover |
+| YouTube Upload | `scripts/youtube_uploader.py` | Browser-based upload automation |
+| Orchestrator | `scripts/orchestrator.py` | Full pipeline orchestrator |
+
+## Episodes (V2 Enhanced)
+
+| # | Title | Key Metric | Duration |
+|---|-------|-----------|----------|
+| 1 | Americans Are Going Broke — The Savings Crisis Nobody Talks About | 3.6% savings rate, ▼30.8% YoY | ~2:44 |
+| 2 | Mortgage Rates Just Hit 6% — What This Really Means For Home Buyers | 5.98% rate, ▼11.5% YoY | ~2:48 |
+| 3 | The U.S. Just Added $2.2 Trillion In Debt — Here's Where It's Going | $37.6T debt, ▲6.1% YoY | ~2:58 |
+| 4 | Gas Is Under $3 A Gallon — But That Might Be Bad News | $2.94/gal, ▼6.3% YoY | ~2:50 |
+| 5 | GDP Growth Just Collapsed 26% — Is A Recession Coming? | 1.4% growth, ▼26.3% YoY | ~2:42 |
+
+## Tech Stack
+
+- **Data**: FRED API (Federal Reserve Economic Data) — 34 curated series
+- **Visualization**: matplotlib (1920x1080, 10fps render → 30fps output)
+- **Voiceover**: AI TTS (Gemini, "charon" voice — calm professional male)
+- **B-Roll**: AI-generated cinematic video clips (15 clips across 5 episodes)
+- **Assembly**: ffmpeg (concatenation, voiceover mixing)
+- **Thumbnails**: matplotlib (1280x720, high-CTR design)
+- **Scheduling**: Cron (Monday 8AM CST weekly)
+
+## Color Palette
+
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Background | `#0A0A0F` | Dark cinematic base |
+| Accent Teal | `#00D4AA` | Positive trends, brand |
+| Accent Coral | `#FF6B6B` | Emphasis, subtitles |
+| Positive | `#22C55E` | Up trends |
+| Negative | `#EF4444` | Down trends |
+
+## Setup
+
 ```bash
 pip install -r requirements.txt
+export FRED_API_KEY="your_key_here"
 ```
 
-### 2. Configure API keys
-Edit `config/settings.py` and fill in:
-- `FRED_API_KEY` — get free at https://fred.stlouisfed.org/docs/api/api_key.html
-- `GEMINI_API_KEY` — get at https://aistudio.google.com/
-- `YOUTUBE_CLIENT_SECRETS_FILE` — path to OAuth2 client_secrets.json from Google Cloud Console
+## Run
 
-### 3. Run the full pipeline
 ```bash
+# Full pipeline for one episode
 python scripts/orchestrator.py
+
+# Just render enhanced episode N
+python scripts/enhanced_renderer.py N
+
+# Just generate thumbnail for episode N
+python scripts/enhanced_thumbnail.py N
+
+# Full assembly with b-roll interleaving
+python scripts/final_assembly.py N
 ```
-
-### 4. Render a specific episode
-```bash
-python scripts/episode_renderer.py --story MORTGAGE_RATE_30Y
-```
-
-### 5. Schedule weekly runs
-```bash
-python scripts/cron_instructions.py
-```
-
-## Output
-
-Each run produces:
-- `output/episode_YYYYMMDD_HHMMSS.mp4` — the rendered video
-- `output/thumbnail_YYYYMMDD_HHMMSS.png` — the thumbnail
-- Uploaded to YouTube automatically
-
-## Economic Indicators Tracked
-
-| Category | Indicators |
-|----------|------------|
-| Housing | Mortgage rates (30Y, 15Y), home sales, housing starts, Case-Shiller HPI |
-| Inflation | CPI, Core CPI, PCE, PPI |
-| Employment | Unemployment rate, nonfarm payrolls, job openings, quits rate |
-| GDP | Real GDP, GDP growth rate, GDP per capita |
-| Consumer | Retail sales, consumer sentiment, credit card delinquencies |
-| Debt | Federal debt, household debt, student loans |
-| Banking | Fed funds rate, M2 money supply, 10Y treasury yield |
-| Business | ISM manufacturing, durable goods orders |
 
 ## License
 

@@ -1,146 +1,171 @@
-# scripts/story_discovery.py
-# ─────────────────────────────────────────────
-# Scores stories by viral potential, finds related indicators
-# ─────────────────────────────────────────────
+"""
+Module 2: Story Discovery — Analyzes fresh data to find the most compelling narrative.
+Scores each potential story by viral potential, then picks the best one.
+"""
+import json
+import os
+from datetime import datetime
+from typing import List, Tuple
 
 import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from config.settings import STORY_WEIGHTS, PUBLIC_INTEREST, PAIN_POINT, FRED_SERIES
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config.settings import FRED_SERIES
 
 
-class StoryDiscovery:
-    def __init__(self, fred_data: dict):
-        """
-        fred_data: dict returned by FREDClient.fetch_all()
-        """
-        self.data = fred_data
-
-    # ── Scoring ───────────────────────────────
-
-    def score_story(self, key: str) -> float:
-        """
-        Score a single indicator on a 0–100 scale.
-        """
-        item = self.data.get(key)
-        if not item:
-            return 0.0
-
-        category = item.get("category", "Market")
-
-        # 1. Magnitude: normalized YoY % change (cap at 50% for scoring)
-        magnitude = min(abs(item.get("yoy_pct", 0.0)), 50.0) / 50.0
-
-        # 2. Public interest
-        interest = PUBLIC_INTEREST.get(category, 0.5)
-
-        # 3. Pain point
-        pain = PAIN_POINT.get(category, 0.5)
-
-        # 4. Freshness: days since last update (fresher = higher score)
+def analyze_data(data_path: str) -> dict:
+    """Load fresh data and score every series for story potential."""
+    with open(data_path) as f:
+        raw = json.load(f)
+    
+    stories = []
+    data = raw["data"]
+    
+    for key, d in data.items():
+        if d.get("yoy_pct") is None:
+            continue
+        
+        abs_pct = abs(d["yoy_pct"])
+        score = 0
+        tags = []
+        
+        if abs_pct > 20:
+            score += 40
+            tags.append("dramatic_change")
+        elif abs_pct > 10:
+            score += 30
+            tags.append("significant_change")
+        elif abs_pct > 5:
+            score += 20
+            tags.append("notable_change")
+        elif abs_pct > 2:
+            score += 10
+            tags.append("moderate_change")
+        
+        high_interest = ["median_home_price", "mortgage_rate_30yr", "gas_price", 
+                        "unemployment_rate", "cpi", "personal_savings_rate",
+                        "rent_cpi", "credit_card_delinquency", "national_debt",
+                        "student_loan_debt", "median_income", "consumer_confidence"]
+        if key in high_interest:
+            score += 25
+            tags.append("high_public_interest")
+        
+        medium_interest = ["case_shiller", "housing_starts", "building_permits",
+                          "labor_force_participation", "fed_funds_rate", "auto_loan_debt",
+                          "home_ownership_rate", "rental_vacancy", "consumer_spending"]
+        if key in medium_interest:
+            score += 15
+            tags.append("medium_public_interest")
+        
+        consumer_bad_when_up = ["cpi", "cpi_food", "cpi_energy", "gas_price", 
+                                "rent_cpi", "credit_card_delinquency", "national_debt",
+                                "student_loan_debt", "mortgage_rate_30yr"]
+        consumer_bad_when_down = ["median_income", "personal_savings_rate", 
+                                  "home_ownership_rate", "labor_force_participation",
+                                  "consumer_confidence"]
+        
+        if (key in consumer_bad_when_up and d["yoy_pct"] > 5) or \
+           (key in consumer_bad_when_down and d["yoy_pct"] < -5):
+            score += 15
+            tags.append("consumer_pain_point")
+        
         try:
-            from datetime import datetime
-            last = datetime.strptime(item["last_updated"], "%Y-%m-%d")
-            days_old = (datetime.now() - last).days
-            freshness = max(0.0, 1.0 - days_old / 90.0)   # 0 after 90 days
-        except Exception:
-            freshness = 0.5
+            data_date = datetime.strptime(d["latest_date"], "%Y-%m-%d")
+            days_old = (datetime.now() - data_date).days
+            if days_old < 30:
+                score += 10
+                tags.append("very_fresh")
+            elif days_old < 90:
+                score += 5
+                tags.append("recent")
+        except:
+            pass
+        
+        stories.append({
+            "key": key,
+            "name": d["name"],
+            "series_id": d["series_id"],
+            "unit": d["unit"],
+            "latest_value": d["latest_value"],
+            "latest_date": d["latest_date"],
+            "yoy_change": d["yoy_change"],
+            "yoy_pct": d["yoy_pct"],
+            "prev_year_value": d["prev_year_value"],
+            "score": score,
+            "tags": tags,
+        })
+    
+    stories.sort(key=lambda x: x["score"], reverse=True)
+    return {"stories": stories, "top_story": stories[0] if stories else None}
 
-        score = (
-            STORY_WEIGHTS["magnitude"]       * magnitude +
-            STORY_WEIGHTS["public_interest"] * interest  +
-            STORY_WEIGHTS["pain_point"]      * pain      +
-            STORY_WEIGHTS["freshness"]       * freshness
-        ) * 100
 
-        return round(score, 2)
+def find_related_series(primary_key: str, all_data: dict) -> List[dict]:
+    """Find 2-3 related series that add context to the primary story."""
+    relations = {
+        "median_home_price": ["mortgage_rate_30yr", "housing_starts", "home_ownership_rate", "case_shiller"],
+        "mortgage_rate_30yr": ["median_home_price", "housing_starts", "fed_funds_rate"],
+        "gas_price": ["cpi_energy", "cpi", "consumer_confidence"],
+        "unemployment_rate": ["initial_claims", "job_openings", "labor_force_participation"],
+        "cpi": ["cpi_food", "cpi_energy", "fed_funds_rate", "gas_price"],
+        "personal_savings_rate": ["consumer_spending", "consumer_credit", "median_income"],
+        "rent_cpi": ["rental_vacancy", "median_home_price", "median_income"],
+        "credit_card_delinquency": ["consumer_credit", "fed_funds_rate", "personal_savings_rate"],
+        "national_debt": ["fed_funds_rate", "treasury_10yr", "gdp_growth"],
+        "student_loan_debt": ["consumer_credit", "credit_card_delinquency", "median_income"],
+        "median_income": ["cpi", "unemployment_rate", "personal_savings_rate"],
+        "consumer_confidence": ["unemployment_rate", "cpi", "gas_price", "personal_savings_rate"],
+        "fed_funds_rate": ["treasury_10yr", "mortgage_rate_30yr", "cpi"],
+        "housing_starts": ["building_permits", "median_home_price", "mortgage_rate_30yr"],
+        "case_shiller": ["median_home_price", "mortgage_rate_30yr", "rent_cpi"],
+        "home_ownership_rate": ["median_home_price", "mortgage_rate_30yr", "median_income"],
+        "gdp_growth": ["consumer_spending", "unemployment_rate", "consumer_confidence"],
+        "labor_force_participation": ["unemployment_rate", "median_income", "job_openings"],
+        "auto_loan_debt": ["consumer_credit", "credit_card_delinquency"],
+        "building_permits": ["housing_starts", "median_home_price"],
+        "rental_vacancy": ["rent_cpi", "median_home_price"],
+        "consumer_spending": ["personal_savings_rate", "consumer_credit", "cpi"],
+    }
+    
+    related_keys = relations.get(primary_key, [])
+    related = []
+    for rk in related_keys[:3]:
+        if rk in all_data:
+            related.append(all_data[rk])
+    return related
 
-    def rank_stories(self) -> list[dict]:
-        """
-        Score and rank all available indicators.
-        Returns a sorted list of dicts with keys: key, label, score, yoy_pct, category.
-        """
-        ranked = []
-        for key, item in self.data.items():
-            score = self.score_story(key)
-            ranked.append({
-                "key":     key,
-                "label":   item.get("label", key),
-                "score":   score,
-                "yoy_pct": item.get("yoy_pct", 0.0),
-                "latest":  item.get("latest", 0.0),
-                "unit":    item.get("unit", ""),
-                "category":item.get("category", ""),
-            })
-        ranked.sort(key=lambda x: x["score"], reverse=True)
-        return ranked
 
-    def top_story(self) -> dict:
-        """
-        Returns the highest-scoring story's full data package.
-        """
-        ranked = self.rank_stories()
-        if not ranked:
-            return {}
-        winner = ranked[0]
-        key = winner["key"]
-        return self._build_story_package(key)
-
-    def story_for_key(self, key: str) -> dict:
-        """
-        Returns a full story package for a specific indicator key.
-        """
-        return self._build_story_package(key)
-
-    # ── Story Package ─────────────────────────
-
-    def _build_story_package(self, key: str) -> dict:
-        """
-        Builds a rich story package with the main indicator + related indicators.
-        """
-        item = self.data.get(key)
-        if not item:
-            return {}
-
-        # Find related indicators (same category, excluding self)
-        category = item.get("category", "")
-        related = [
-            {
-                "key":     k,
-                "label":   v.get("label", k),
-                "latest":  v.get("latest", 0.0),
-                "unit":    v.get("unit", ""),
-                "yoy_pct": v.get("yoy_pct", 0.0),
-            }
-            for k, v in self.data.items()
-            if v.get("category") == category and k != key
-        ]
-
-        return {
-            "key":      key,
-            "item":     item,
-            "related":  related,
-            "score":    self.score_story(key),
-            "category": category,
-        }
+def build_story_package(data_path: str) -> dict:
+    """Full pipeline: analyze data → pick best story → gather context → return package."""
+    with open(data_path) as f:
+        raw = json.load(f)
+    
+    analysis = analyze_data(data_path)
+    top = analysis["top_story"]
+    
+    if not top:
+        raise ValueError("No stories found in data")
+    
+    related = find_related_series(top["key"], raw["data"])
+    
+    package = {
+        "primary": top,
+        "related": related,
+        "all_ranked": analysis["stories"][:10],
+        "generated_at": datetime.now().isoformat(),
+    }
+    
+    return package
 
 
 if __name__ == "__main__":
-    import json
-    from pathlib import Path
-    from scripts.data_ingestion import FREDClient
-
-    client = FREDClient()
-    data = client.fetch_all()
-
-    discovery = StoryDiscovery(data)
-    ranked = discovery.rank_stories()
-
-    print("\nTop 10 Stories:")
-    for i, s in enumerate(ranked[:10], 1):
-        print(f"  {i:2}. [{s['score']:5.1f}] {s['label']:40s}  YoY={s['yoy_pct']:+.1f}%")
-
-    top = discovery.top_story()
-    print(f"\nWinner: {top['item']['label']}  (score={top['score']})")
+    pkg = build_story_package("/home/user/workspace/the-money-map/data/latest_data.json")
+    print(f"\n🎯 TOP STORY: {pkg['primary']['name']}")
+    print(f"   Latest: {pkg['primary']['latest_value']} {pkg['primary']['unit']}")
+    print(f"   YoY Change: {pkg['primary']['yoy_pct']:+.1f}%")
+    print(f"   Score: {pkg['primary']['score']}")
+    print(f"   Tags: {', '.join(pkg['primary']['tags'])}")
+    print(f"\n📊 Related Context:")
+    for r in pkg['related']:
+        print(f"   - {r['name']}: {r['latest_value']} ({r.get('yoy_pct', 'N/A')}% YoY)")
+    print(f"\n📋 Top 5 Ranked Stories:")
+    for s in pkg['all_ranked'][:5]:
+        print(f"   [{s['score']}] {s['name']}: {s['yoy_pct']:+.1f}%")

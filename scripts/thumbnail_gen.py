@@ -1,110 +1,92 @@
-# scripts/thumbnail_gen.py
-# ─────────────────────────────────────────────
-# Generates thumbnails with key stat and YoY change
-# ─────────────────────────────────────────────
-
+"""
+Generates YouTube thumbnails (1280x720) for each episode.
+Dark cinematic style matching video aesthetic.
+"""
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
 import os
 import sys
-import datetime
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from PIL import Image, ImageDraw
-from config.settings import (
-    COLOR_BG, COLOR_ACCENT, COLOR_POSITIVE, COLOR_NEGATIVE,
-    COLOR_TEXT, COLOR_SUBTEXT, OUTPUT_DIR
-)
-from scripts.video_renderer import hex_to_rgb, make_bg_array, draw_grid, _load_font
+sys.path.insert(0, '/home/user/workspace/the-money-map')
+from config.settings import COLORS
 
 
-def generate_thumbnail(
-        title: str,
-        indicator_label: str,
-        latest_value: str,
-        yoy_pct: float,
-        out_path: str = None) -> str:
-    """
-    Generate a 1280x720 YouTube thumbnail.
-    Returns the file path.
-    """
-    W, H = 1280, 720
-    bg = draw_grid(make_bg_array(W, H), spacing=60, alpha=0.06)
-    img = Image.fromarray(bg)
-    draw = ImageDraw.Draw(img)
-
-    # Top accent bar
-    draw.rectangle([(0, 0), (W, 8)], fill=hex_to_rgb(COLOR_ACCENT))
-
-    # Brand label
-    font_brand = _load_font(28)
-    draw.text((40, 24), "THE MONEY MAP", font=font_brand, fill=hex_to_rgb(COLOR_ACCENT))
-
-    # Main title (large, bold)
-    font_title = _load_font(64, bold=True)
-    margin = 60
-    lines = []
-    words = title.split()
-    current = ""
-    for word in words:
-        test = f"{current} {word}".strip()
-        if draw.textlength(test, font=font_title) <= W - margin * 2:
-            current = test
-        else:
-            if current:
-                lines.append(current)
-            current = word
-    if current:
-        lines.append(current)
-
-    y = 90
-    for line in lines[:3]:  # max 3 lines
-        draw.text((margin, y), line, font=font_title, fill=hex_to_rgb(COLOR_TEXT))
-        y += 76
-
-    # Big stat box (right side)
-    box_x, box_y = W - 420, H // 2 - 60
-    box_w, box_h = 380, 200
-    draw.rounded_rectangle([(box_x, box_y), (box_x + box_w, box_y + box_h)],
-                           radius=20, fill=(10, 16, 40))
-    draw.rounded_rectangle([(box_x, box_y), (box_x + box_w, box_y + 6)],
-                           radius=3, fill=hex_to_rgb(COLOR_ACCENT))
-
-    font_val = _load_font(80, bold=True)
-    font_yoy = _load_font(38)
-    font_lbl = _load_font(24)
-
-    vw = draw.textlength(latest_value, font=font_val)
-    draw.text((box_x + (box_w - vw) // 2, box_y + 18), latest_value,
-              font=font_val, fill=hex_to_rgb(COLOR_TEXT))
-
-    yoy_color = COLOR_POSITIVE if yoy_pct >= 0 else COLOR_NEGATIVE
-    yoy_str = f"{'▲' if yoy_pct >= 0 else '▼'} {abs(yoy_pct):.1f}% YoY"
-    yw = draw.textlength(yoy_str, font=font_yoy)
-    draw.text((box_x + (box_w - yw) // 2, box_y + 112),
-              yoy_str, font=font_yoy, fill=hex_to_rgb(yoy_color))
-
-    lw = draw.textlength(indicator_label, font=font_lbl)
-    draw.text((box_x + (box_w - lw) // 2, box_y + 162),
-              indicator_label, font=font_lbl, fill=hex_to_rgb(COLOR_SUBTEXT))
-
-    # Bottom bar
-    draw.rectangle([(0, H - 8), (W, H)], fill=hex_to_rgb(COLOR_ACCENT))
-
-    # Save
-    if not out_path:
-        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_path = os.path.join(OUTPUT_DIR, f"thumbnail_{ts}.png")
-
-    img.save(out_path)
-    print(f"Thumbnail saved to {out_path}")
-    return out_path
+def generate_thumbnail(script_data, output_path):
+    """Generate a 1280x720 YouTube thumbnail from script data."""
+    primary = script_data['primary_metric']
+    val = primary['latest_value']
+    unit = primary['unit']
+    yoy = primary['yoy_pct']
+    name = primary['name']
+    
+    if unit == '%':
+        display_val = f"{val:.1f}%"
+    elif unit in ('$', '$/gallon'):
+        display_val = f"${val:,.2f}"
+    elif unit == 'millions $':
+        display_val = f"${val/1e6:.1f}T" if val >= 1e6 else f"${val/1000:,.0f}B"
+    elif unit == 'billions $':
+        display_val = f"${val/1000:.1f}T" if val >= 1000 else f"${val:,.0f}B"
+    else:
+        display_val = f"{val:,.1f}"
+    
+    is_neg = yoy < 0
+    accent = COLORS['negative'] if is_neg else COLORS['positive']
+    arrow = "▼" if is_neg else "▲"
+    
+    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis('off')
+    fig.patch.set_facecolor(COLORS['bg_dark'])
+    
+    for x in np.arange(0, 1.1, 0.04):
+        ax.axvline(x, color=accent, alpha=0.04, lw=0.3)
+    for y in np.arange(0, 1.1, 0.04):
+        ax.axhline(y, color=accent, alpha=0.04, lw=0.3)
+    
+    stripe = patches.Rectangle((0, 0), 0.015, 1, linewidth=0,
+                                facecolor=accent, alpha=0.9)
+    ax.add_patch(stripe)
+    
+    ax.text(0.5, 0.58, display_val, fontsize=110, fontweight='bold',
+           ha='center', va='center', color='white',
+           fontfamily='sans-serif')
+    
+    ax.text(0.5, 0.33, name.upper(), fontsize=28, fontweight='bold',
+           ha='center', va='center', color=COLORS['text_secondary'],
+           fontfamily='sans-serif')
+    
+    badge_text = f" {arrow} {abs(yoy):.1f}% YoY "
+    ax.text(0.5, 0.2, badge_text, fontsize=24, fontweight='bold',
+           ha='center', va='center', color='white',
+           fontfamily='sans-serif',
+           bbox=dict(boxstyle='round,pad=0.4', facecolor=accent, 
+                    edgecolor='none', alpha=0.9))
+    
+    ax.text(0.95, 0.06, "THE MONEY MAP", fontsize=14, ha='right',
+           color=COLORS['accent_teal'], alpha=0.8, fontweight='bold',
+           fontfamily='sans-serif')
+    
+    ax.text(0.05, 0.06, "Source: FRED", fontsize=10, ha='left',
+           color=COLORS['text_muted'], alpha=0.5)
+    
+    plt.tight_layout(pad=0)
+    plt.savefig(output_path, facecolor=fig.get_facecolor(), dpi=100,
+               bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+    
+    return output_path
 
 
 if __name__ == "__main__":
-    generate_thumbnail(
-        title="Mortgage Rates Hit 6.81%: Is Housing Finally Cooling Down?",
-        indicator_label="30-Year Mortgage Rate",
-        latest_value="6.81%",
-        yoy_pct=-3.8,
-    )
+    import json
+    with open('/home/user/workspace/the-money-map/data/latest_script.json') as f:
+        script_data = json.load(f)
+    out = generate_thumbnail(script_data, '/home/user/workspace/the-money-map/output/thumbnail.png')
+    print(f"Thumbnail saved: {out}")
+    sz = os.path.getsize(out)
+    print(f"Size: {sz/1024:.0f} KB")

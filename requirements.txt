@@ -1,6 +1,3 @@
-fredapi
-google-generativeai
-moviepy
-Pillow
-google-api-python-client
-google-auth-oauthlib
+matplotlib>=3.7
+numpy>=1.24
+requests>=2.28
