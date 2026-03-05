@@ -80,7 +80,7 @@ generate_thumbnail(script, 'output/thumbnail.png')
 
 ## Step 7: Upload to YouTube
 - URL: https://studio.youtube.com
-- Login: yredstick@gmail.com / Nola0528!
+- Login: Use YouTube API OAuth (see youtube_api_uploader.py)
 - Upload: output/pilot_episode.mp4
 - Title/description from data/latest_script.json
 - Thumbnail: output/thumbnail.png

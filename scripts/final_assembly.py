@@ -1,35 +1,21 @@
 """
 Final Assembly Script for The Money Map Enhanced Episodes
-Interleaves data-viz scenes with AI b-roll clips and layers voiceover.
+Interleaves data-viz scenes with AI b-roll clips and layers voiceover + music.
 
-Structure per episode:
-  1. Cold Open (6s) — data counter
-  2. B-roll Hook (4s) — AI cinematic footage
-  3. Hook + Title (18s) — title card + stat reveal
-  4. Chart Walk (55s) — animated chart
-  5. B-roll Context (4s) — AI cinematic footage
-  6. Context + Connected Data (40s) — multi-metric cards
-  7. B-roll Insight (4s) — AI cinematic footage
-  8. Insight (35s) — key takeaway
-  9. Close (12s) — subscribe CTA
-  Total visual: ~178s → trimmed to voiceover length
+Supports both legacy fixed-duration episodes and new dynamic-duration episodes.
+Uses mixed audio (voiceover + background music) when available.
 """
 import subprocess
 import os
 import sys
 import json
+import shutil
 
-BASE = '/home/user/workspace/the-money-map'
-BROLL_DIR = f'{BASE}/assets/broll_video'
-OUTPUT_DIR = f'{BASE}/output'
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-EPISODE_KEYS = [
-    'personal_savings_rate',
-    'mortgage_rate_30yr',
-    'national_debt',
-    'gas_price',
-    'gdp_growth'
-]
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BROLL_DIR = os.path.join(BASE, 'assets', 'broll_video')
+OUTPUT_DIR = os.path.join(BASE, 'output')
 
 
 def get_duration(path):
@@ -47,61 +33,83 @@ def normalize_broll(broll_path, output_path):
         '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
         '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
         '-r', '30', '-pix_fmt', 'yuv420p',
-        '-an',  # Remove audio from b-roll (we'll add our own voiceover)
+        '-an',
         output_path
     ], capture_output=True, text=True, timeout=120, check=True)
 
 
-def assemble_episode(ep_num):
-    key = EPISODE_KEYS[ep_num - 1]
+def _calculate_segments(script_data):
+    """Calculate segment timestamps from script data.
+
+    Uses dynamic scene durations from calculate_scene_durations.
+    """
+    from scripts.enhanced_renderer import calculate_scene_durations
+    durations = calculate_scene_durations(script_data)
+
+    # Build cumulative timestamps
+    scene_order = ['cold_open', 'hook', 'chart_walk', 'context', 'insight', 'close']
+    segments = {}
+    cursor = 0
+    for scene in scene_order:
+        dur = durations.get(scene, 10)
+        segments[scene] = (cursor, cursor + dur)
+        cursor += dur
+
+    return segments
+
+
+def assemble_episode_dynamic(dataviz_path, broll_paths, audio_path, output_path,
+                              script_data=None):
+    """Assemble final video with dynamic segment durations.
+
+    Args:
+        dataviz_path: Path to rendered data-viz video (silent)
+        broll_paths: dict with keys 'hook', 'context', 'insight' -> file paths (or None)
+        audio_path: Path to audio file (mixed voiceover+music or raw voiceover)
+        output_path: Path for final output video
+        script_data: Script JSON for calculating dynamic segment durations
+    """
     print(f"\n{'='*60}")
-    print(f"ASSEMBLING EPISODE {ep_num}: {key}")
+    print(f"ASSEMBLING FINAL VIDEO")
     print(f"{'='*60}")
-    
-    work_dir = os.path.join(OUTPUT_DIR, f'ep{ep_num}_v2_assembly')
+
+    work_dir = output_path + '_assembly'
     os.makedirs(work_dir, exist_ok=True)
-    
-    # Data-viz video (already rendered)
-    dataviz_path = os.path.join(OUTPUT_DIR, f'ep{ep_num}_v2_final.mp4')
+
     if not os.path.exists(dataviz_path):
         print(f"  ERROR: {dataviz_path} not found!")
         return None
-    
-    # B-roll clips
-    broll_hook = os.path.join(BROLL_DIR, f'broll_ep{ep_num}_hook_vid.mp4')
-    broll_context = os.path.join(BROLL_DIR, f'broll_ep{ep_num}_context_vid.mp4')
-    broll_insight = os.path.join(BROLL_DIR, f'broll_ep{ep_num}_insight_vid.mp4')
-    
-    # Voiceover
-    vo_path = os.path.join(BASE, f'data/ep{ep_num}_v2/voiceover.mp3')
-    vo_duration = get_duration(vo_path)
-    print(f"  Voiceover duration: {vo_duration:.1f}s")
-    
-    # Step 1: Split the data-viz video into segments
-    # The data-viz has these scenes: cold_open(6s) + hook(18s) + chart(55s) + context(40s) + insight(35s) + close(12s) = 166s
-    # We'll extract key segments and interleave b-roll
-    
-    # Normalize b-roll clips to match format
-    print("  Normalizing b-roll clips...")
-    broll_hook_n = os.path.join(work_dir, 'broll_hook.mp4')
-    broll_context_n = os.path.join(work_dir, 'broll_context.mp4')
-    broll_insight_n = os.path.join(work_dir, 'broll_insight.mp4')
-    
-    normalize_broll(broll_hook, broll_hook_n)
-    normalize_broll(broll_context, broll_context_n)
-    normalize_broll(broll_insight, broll_insight_n)
-    
-    # Step 2: Extract segments from data-viz
+
+    audio_duration = get_duration(audio_path)
+    print(f"  Audio duration: {audio_duration:.1f}s")
+
+    # Calculate segments from script data or use defaults
+    if script_data:
+        segments = _calculate_segments(script_data)
+    else:
+        segments = {
+            'cold_open': (0, 6),
+            'hook': (6, 24),
+            'chart_walk': (24, 79),
+            'context': (79, 119),
+            'insight': (119, 154),
+            'close': (154, 166),
+        }
+
+    print(f"  Scene segments: {segments}")
+
+    # Normalize available b-roll clips
+    broll_normalized = {}
+    for scene_name in ['hook', 'context', 'insight']:
+        broll_src = broll_paths.get(scene_name) if broll_paths else None
+        if broll_src and os.path.exists(broll_src):
+            norm_path = os.path.join(work_dir, f'broll_{scene_name}.mp4')
+            print(f"  Normalizing b-roll: {scene_name}")
+            normalize_broll(broll_src, norm_path)
+            broll_normalized[scene_name] = norm_path
+
+    # Extract segments from data-viz
     print("  Extracting data-viz segments...")
-    segments = {
-        'cold_open': (0, 6),           # 0-6s
-        'hook_title': (6, 24),         # 6-24s (18s)
-        'chart': (24, 79),             # 24-79s (55s)
-        'context': (79, 119),          # 79-119s (40s)
-        'insight': (119, 154),         # 119-154s (35s)
-        'close': (154, 166),           # 154-166s (12s)
-    }
-    
     seg_files = {}
     for name, (start, end) in segments.items():
         seg_path = os.path.join(work_dir, f'seg_{name}.mp4')
@@ -112,59 +120,78 @@ def assemble_episode(ep_num):
             '-crf', '23', '-an', '-pix_fmt', 'yuv420p', seg_path
         ], capture_output=True, text=True, timeout=120, check=True)
         seg_files[name] = seg_path
-    
-    # Step 3: Build concat list with b-roll interleaved
-    # Order: cold_open → broll_hook → hook_title → chart → broll_context → context → broll_insight → insight → close
+
+    # Build interleaved timeline
     print("  Building interleaved timeline...")
+    ordered_clips = [seg_files['cold_open']]
+
+    if 'hook' in broll_normalized:
+        ordered_clips.append(broll_normalized['hook'])
+    ordered_clips.append(seg_files['hook'])
+    ordered_clips.append(seg_files['chart_walk'])
+
+    if 'context' in broll_normalized:
+        ordered_clips.append(broll_normalized['context'])
+    ordered_clips.append(seg_files['context'])
+
+    if 'insight' in broll_normalized:
+        ordered_clips.append(broll_normalized['insight'])
+    ordered_clips.append(seg_files['insight'])
+    ordered_clips.append(seg_files['close'])
+
     concat_list = os.path.join(work_dir, 'concat.txt')
-    ordered_clips = [
-        seg_files['cold_open'],     # 6s
-        broll_hook_n,                # 4s  
-        seg_files['hook_title'],     # 18s
-        seg_files['chart'],          # 55s
-        broll_context_n,             # 4s
-        seg_files['context'],        # 40s
-        broll_insight_n,             # 4s
-        seg_files['insight'],        # 35s
-        seg_files['close'],          # 12s
-    ]
-    # Total: ~178s
-    
     with open(concat_list, 'w') as f:
         for clip in ordered_clips:
             f.write(f"file '{clip}'\n")
-    
-    # Step 4: Concatenate all segments
+
+    # Concatenate all segments
     silent_path = os.path.join(work_dir, 'silent_interleaved.mp4')
     subprocess.run([
         'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_list,
         '-c', 'copy', silent_path
     ], capture_output=True, text=True, timeout=120, check=True)
-    
+
     silent_dur = get_duration(silent_path)
     print(f"  Interleaved video duration: {silent_dur:.1f}s")
-    
-    # Step 5: Mix voiceover on top
-    final_path = os.path.join(OUTPUT_DIR, f'ep{ep_num}_enhanced.mp4')
-    print("  Mixing voiceover...")
+
+    # Mix audio on top
+    print("  Mixing audio...")
     subprocess.run([
-        'ffmpeg', '-y', '-i', silent_path, '-i', vo_path,
+        'ffmpeg', '-y', '-i', silent_path, '-i', audio_path,
         '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
         '-map', '0:v:0', '-map', '1:a:0', '-shortest',
-        final_path
+        output_path
     ], capture_output=True, text=True, timeout=120, check=True)
-    
-    final_dur = get_duration(final_path)
-    final_size = os.path.getsize(final_path) / (1024 * 1024)
-    print(f"\n  FINAL: {final_path}")
+
+    final_dur = get_duration(output_path)
+    final_size = os.path.getsize(output_path) / (1024 * 1024)
+    print(f"\n  FINAL: {output_path}")
     print(f"  Duration: {final_dur:.1f}s ({int(final_dur//60)}m{int(final_dur%60)}s)")
     print(f"  Size: {final_size:.1f} MB")
-    
+
     # Cleanup work dir
-    import shutil
     shutil.rmtree(work_dir)
-    
-    return final_path
+    return output_path
+
+
+# Legacy function for backward compatibility with existing episodes
+def assemble_episode(ep_num):
+    """Assemble a legacy episode by number (episodes 1-5)."""
+    episode_keys = [
+        'personal_savings_rate', 'mortgage_rate_30yr',
+        'national_debt', 'gas_price', 'gdp_growth'
+    ]
+
+    dataviz_path = os.path.join(OUTPUT_DIR, f'ep{ep_num}_v2_final.mp4')
+    broll_paths = {
+        'hook': os.path.join(BROLL_DIR, f'broll_ep{ep_num}_hook_vid.mp4'),
+        'context': os.path.join(BROLL_DIR, f'broll_ep{ep_num}_context_vid.mp4'),
+        'insight': os.path.join(BROLL_DIR, f'broll_ep{ep_num}_insight_vid.mp4'),
+    }
+    vo_path = os.path.join(BASE, f'data/ep{ep_num}_v2/voiceover.mp3')
+    output_path = os.path.join(OUTPUT_DIR, f'ep{ep_num}_enhanced.mp4')
+
+    return assemble_episode_dynamic(dataviz_path, broll_paths, vo_path, output_path)
 
 
 if __name__ == '__main__':
