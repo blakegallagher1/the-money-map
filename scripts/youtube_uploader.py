@@ -16,8 +16,6 @@ class YouTubeUploader:
     """Handles uploading videos to The Money Map YouTube channel."""
     
     def __init__(self):
-        self.channel_email = "yredstick@gmail.com"
-        self.channel_password = "Nola0528!"
         self.channel_name = "The Money Map"
     
     def prepare_upload_package(self, script_data, video_path, thumbnail_path):
@@ -56,16 +54,15 @@ class YouTubeUploader:
 Upload a video to YouTube Studio for The Money Map channel.
 
 1. Go to https://studio.youtube.com
-2. Sign in with: {self.channel_email} / {self.channel_password}
-3. Click CREATE → Upload videos
-4. Upload: {package['video_path']}
-5. Title: {package['title']}
-6. Description: {package['description']}
-7. Tags: {tags_str}
-8. Audience: Not made for kids
-9. Visibility: {package['visibility']}
-10. Thumbnail: {package['thumbnail_path']}
-11. Publish
+2. Click CREATE → Upload videos
+3. Upload: {package['video_path']}
+4. Title: {package['title']}
+5. Description: {package['description']}
+6. Tags: {tags_str}
+7. Audience: Not made for kids
+8. Visibility: {package['visibility']}
+9. Thumbnail: {package['thumbnail_path']}
+10. Publish
 
 Return the video URL once published.
 """

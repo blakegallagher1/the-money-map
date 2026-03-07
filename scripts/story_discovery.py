@@ -80,6 +80,16 @@ def analyze_data(data_path: str) -> dict:
         except:
             pass
         
+        # Apply recency penalty from episode history
+        try:
+            from scripts.episode_tracker import get_recency_penalty
+            recency = get_recency_penalty(key)
+            if recency < 0:
+                score += recency
+                tags.append(f"recency_penalty_{abs(recency)}")
+        except Exception:
+            pass  # Episode tracker not available, skip penalty
+
         stories.append({
             "key": key,
             "name": d["name"],

@@ -12,6 +12,30 @@ FRED_API_KEY = os.environ.get("FRED_API_KEY", "50f1b7098d9ae0eb17d5ec516b6df15e"
 CENSUS_API_KEY = os.environ.get("CENSUS_API_KEY", "")  # Pending email activation
 BLS_API_KEY = os.environ.get("BLS_API_KEY", "")  # Pending email activation
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+LUMA_API_KEY = os.environ.get("LUMA_API_KEY", "")
+
+# --- LLM Script Writer ---
+SCRIPT_LLM_MODEL = "gpt-5.2"
+TARGET_WORD_COUNT = 700  # Target ~4-5 minute videos
+
+# --- B-Roll Settings (Luma Dream Machine) ---
+BROLL_ENABLED = True
+BROLL_DURATION = 4  # Seconds per b-roll clip
+
+# --- Background Music ---
+MUSIC_ENABLED = True
+
+# --- YouTube API (OAuth 2.0) ---
+YOUTUBE_CLIENT_SECRET_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'client_secret.json'
+)
+YOUTUBE_TOKEN_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'token.json'
+)
+YOUTUBE_CATEGORY_ID = "27"  # Education
+AUTO_UPLOAD = os.environ.get("AUTO_UPLOAD", "false").lower() == "true"
 
 # --- TTS Settings (OpenAI gpt-4o-mini-tts) ---
 TTS_MODEL = "gpt-4o-mini-tts"
@@ -37,7 +61,7 @@ YOUTUBE_CHANNEL_ID = ""  # Will be populated after OAuth setup
 VIDEO_WIDTH = 1920
 VIDEO_HEIGHT = 1080
 FPS = 30
-VIDEO_DURATION_TARGET = 180  # Target ~3 minutes per video
+VIDEO_DURATION_TARGET = 270  # Target ~4.5 minutes per video
 FONT_FAMILY = "DejaVu Sans"
 
 # --- Color Palette (Dark, Cinematic, Data-Viz Optimized) ---
