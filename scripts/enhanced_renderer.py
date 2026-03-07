@@ -89,6 +89,68 @@ def draw_watermark(ax, alpha=0.35):
             color=COLORS['text_muted'], alpha=alpha, fontweight='bold',
             style='italic', transform=ax.transAxes)
 
+def calculate_scene_durations(script_data):
+    """Calculate dynamic scene durations based on script section word counts.
+
+    Maps word count per section to seconds at ~2.5 words/second (150 wpm).
+    Returns dict of scene name -> duration in seconds.
+    """
+    sections = script_data.get('sections', {})
+    section_map = {
+        'cold_open': 'cold_open',
+        'hook': 'hook',
+        'the_number': 'the_number',
+        'chart_walk': 'chart_walk',
+        'context': 'context',
+        'connected_data': 'connected_data',
+        'insight': 'insight',
+        'close': 'close',
+    }
+
+    # Default durations (fallback for original ~166s videos)
+    defaults = {
+        'cold_open': 6, 'hook': 18, 'chart_walk': 55,
+        'context': 40, 'insight': 35, 'close': 12,
+    }
+
+    durations = {}
+    for scene, section_key in section_map.items():
+        text = sections.get(section_key, '')
+        word_count = len(text.split()) if text else 0
+
+        if word_count > 0:
+            # Calculate duration from word count, with minimum floors
+            mins = {
+                'cold_open': 5, 'hook': 15, 'chart_walk': 40,
+                'context': 30, 'insight': 25, 'close': 10,
+            }
+            raw_duration = int(word_count / 2.5)
+            durations[scene] = max(raw_duration, mins.get(scene, 8))
+        else:
+            durations[scene] = defaults.get(scene, 10)
+
+    # Combine hook + the_number into one scene for rendering
+    hook_words = len(sections.get('hook', '').split())
+    number_words = len(sections.get('the_number', '').split())
+    durations['hook'] = max(18, int((hook_words + number_words) / 2.5))
+
+    # Combine context + connected_data
+    context_words = len(sections.get('context', '').split())
+    connected_words = len(sections.get('connected_data', '').split())
+    durations['context'] = max(30, int((context_words + connected_words) / 2.5))
+
+    # Remove entries we merged
+    durations.pop('the_number', None)
+    durations.pop('connected_data', None)
+
+    total = sum(durations.values())
+    print(f"  Dynamic scene durations: {total}s total")
+    for k, v in durations.items():
+        print(f"    {k}: {v}s")
+
+    return durations
+
+
 def frames_to_video(frame_dir, output_path, fps=RENDER_FPS):
     """Convert frames to video with ffmpeg."""
     subprocess.run([
@@ -687,14 +749,17 @@ def render_episode(ep_num, script_path, output_dir):
     base_dir = os.path.join(output_dir, f"ep{ep_num}_v2_render")
     os.makedirs(base_dir, exist_ok=True)
     
-    # Render all scenes
+    # Calculate dynamic scene durations based on script word counts
+    durations = calculate_scene_durations(script_data)
+
+    # Render all scenes with dynamic durations
     scenes = []
-    scenes.append(render_scene_cold_open(script_data, base_dir, duration_sec=6))
-    scenes.append(render_scene_hook(script_data, base_dir, duration_sec=18))
-    scenes.append(render_scene_chart(script_data, base_dir, duration_sec=55))
-    scenes.append(render_scene_context(script_data, base_dir, duration_sec=40))
-    scenes.append(render_scene_insight(script_data, base_dir, duration_sec=35))
-    scenes.append(render_scene_close(script_data, base_dir, duration_sec=12))
+    scenes.append(render_scene_cold_open(script_data, base_dir, duration_sec=durations.get('cold_open', 6)))
+    scenes.append(render_scene_hook(script_data, base_dir, duration_sec=durations.get('hook', 18)))
+    scenes.append(render_scene_chart(script_data, base_dir, duration_sec=durations.get('chart_walk', 55)))
+    scenes.append(render_scene_context(script_data, base_dir, duration_sec=durations.get('context', 40)))
+    scenes.append(render_scene_insight(script_data, base_dir, duration_sec=durations.get('insight', 35)))
+    scenes.append(render_scene_close(script_data, base_dir, duration_sec=durations.get('close', 12)))
     
     # Concatenate scenes
     concat_file = os.path.join(base_dir, "concat.txt")
