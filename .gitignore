@@ -12,6 +12,7 @@ data/*_v2/voiceover.mp3
 __pycache__/
 *.pyc
 .DS_Store
+.claude/
 tool_calls/
 output/voiceover.mp3
 output/channel_banner.png
