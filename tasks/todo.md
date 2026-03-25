@@ -2,6 +2,38 @@
 
 ## Active Sprint
 
+### [ ] Imagegen Visual Upgrade
+- **Goal**: Replace the weakest slideshow beats in the CRE balance-sheet episode with high-end generated stills and rebuild the video around those visuals
+- **Branch**: `main`
+- **Steps**:
+  - [x] Define a reusable image prompt plan for the episode
+  - [x] Generate premium still images with the `imagegen` workflow
+  - [x] Integrate the generated stills into the episode builder
+  - [x] Rebuild the final episode and verify the upgraded export
+- **Verification**:
+  - [x] Baseline test suite run recorded (`python -m pytest`)
+  - [x] Generated stills are saved locally under stable paths
+  - [x] Upgraded final video renders successfully
+  - [x] `ffprobe` and spot-check frames confirm the final export
+- **Status**: complete
+- **Review**: Added `scripts/episode_image_visuals.py` plus `data/cre_balance_sheet_fortress/image_plan.json` for reproducible still generation, moved visual-asset sequencing into `scripts/episode_visual_assets.py`, updated the episode spec to use generated stills, and rebuilt `output/cre_balance_sheet_fortress.mp4` against six locally generated image assets under `output/imagegen/cre_balance_sheet_fortress/`.
+
+### [ ] Sora Generation Via ChatGPT Pro
+- **Goal**: Use browser automation against the ChatGPT/Sora web UI so episode visuals can be generated through the user's ChatGPT Pro account instead of the API billing path
+- **Branch**: `main`
+- **Steps**:
+  - [ ] Launch a reusable headed browser session with Playwright interactive
+  - [ ] Reach the ChatGPT/Sora generation surface and confirm account access
+  - [ ] Submit the episode shot prompts and download completed videos
+  - [ ] Rebuild the final episode with the new clips if generation succeeds
+- **Verification**:
+  - [ ] Browser session reaches the correct Sora UI while signed in
+  - [ ] Requested clip jobs are submitted successfully
+  - [ ] Downloaded video assets are saved locally
+  - [ ] Episode rebuild and artifact checks pass if new clips are produced
+- **Status**: superseded
+- **Review**: Superseded after the authenticated browser route did not provide a workable current Sora surface for this task; the visual upgrade was completed through the reproducible `imagegen` path instead.
+
 ### [ ] CRE Balance Sheet Sora Upgrade
 - **Goal**: Improve the narrated CRE balance-sheet video with Sora-generated cinematic section visuals while keeping the existing voiceover and timing intact
 - **Branch**: `main`

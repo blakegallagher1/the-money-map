@@ -1,0 +1,93 @@
+{
+  "slug": "cre_balance_sheet_fortress",
+  "model": "gpt-image-1.5",
+  "size": "1536x1024",
+  "quality": "high",
+  "output_format": "png",
+  "images": [
+    {
+      "id": "opening_gap_balance_sheet_desk",
+      "prompt": "cinematic commercial real estate underwriting desk scene at night",
+      "use_case": "photorealistic-natural",
+      "scene": "upper-floor office at night with a soft city skyline glow beyond the glass",
+      "subject": "calculator, site plans, stacked financial papers turned away from camera, and a heavy desk with no visible letters or numbers",
+      "style": "premium editorial photography with real texture and restraint",
+      "composition": "wide horizontal frame, desk objects in the foreground, generous depth behind them",
+      "lighting": "moody tungsten desk lamp mixed with cool teal city light, shallow depth of field",
+      "palette": "charcoal, warm amber, muted teal, weathered paper white",
+      "materials": "matte calculator plastic, vellum plans, crisp paper edges, dark wood desk",
+      "constraints": "no people; no readable text; no visible letters or numbers on paper; no logos; no watermark",
+      "negative": "stock photo vibe; cheesy lens flare; oversaturated neon; excessive clutter; fake glossy render; readable memo title"
+    },
+    {
+      "id": "preserve_stalled_jobsite_image",
+      "prompt": "rain-soaked commercial construction site paused in uncertainty",
+      "use_case": "photorealistic-natural",
+      "scene": "empty suburban jobsite at dawn after rain with wrapped columns, chain-link fence, and an idle tower crane",
+      "subject": "unfinished concrete slab, exposed columns, construction materials sitting untouched, and a sense of caution",
+      "style": "photorealistic editorial site photography",
+      "composition": "wide cinematic frame from outside the fence, slightly low eye level, strong foreground pavement texture",
+      "lighting": "cold overcast morning light with soft reflections on wet concrete",
+      "palette": "slate gray, wet concrete, muted rust, faded orange safety accents",
+      "materials": "wet asphalt, wrapped concrete columns, chain-link fence, puddles",
+      "constraints": "no workers; no readable signage; no logos; no watermark",
+      "negative": "dramatic explosion energy; sunny optimism; oversharpening; artificial HDR"
+    },
+    {
+      "id": "expose_storm_highrise_image",
+      "prompt": "partially completed urban high-rise under gathering storm pressure",
+      "use_case": "photorealistic-natural",
+      "scene": "unfinished steel and concrete tower above a city skyline as heavy storm clouds move in",
+      "subject": "orange safety netting, exposed structure, hanging crane line, and a feeling of overextension",
+      "style": "editorial architectural photography",
+      "composition": "wide telephoto crop with the unfinished floors dominating frame left and storm skyline opening to the right",
+      "lighting": "dark storm light with one break of pale late-day sun at the horizon",
+      "palette": "storm blue, gunmetal, faded orange, pale gold",
+      "materials": "steel frame, concrete decks, mesh netting, distant glass towers",
+      "constraints": "no people; no readable text; no logos; no watermark",
+      "negative": "clean luxury tower glamour; bright cheerful weather; cartoonish skyline"
+    },
+    {
+      "id": "reserve_optionality_office_image",
+      "prompt": "quiet private real estate office expressing patience, liquidity, and optionality",
+      "use_case": "photorealistic-natural",
+      "scene": "disciplined investor office at first light with a skyline view and untouched deal folders",
+      "subject": "well-ordered desk, simple notebook, fountain pen, neat stack of folders, and open breathing room",
+      "style": "high-end editorial interior photography",
+      "composition": "wide horizontal shot with negative space, clean desk plane, and calm skyline depth",
+      "lighting": "soft dawn light, low contrast, composed and calm mood",
+      "palette": "warm gray, taupe, muted brass, soft blue dawn",
+      "materials": "linen folders, smooth wood desk, glass, brushed metal pen",
+      "constraints": "no people; no readable text; no logos; no watermark",
+      "negative": "messy desk; frantic trading floor energy; flashy luxury staging"
+    },
+    {
+      "id": "attack_distressed_asset_image",
+      "prompt": "decisive acquisition moment in a stressed commercial real estate market",
+      "use_case": "photorealistic-natural",
+      "scene": "distressed industrial property at sunrise just after bad weather has cleared",
+      "subject": "weathered warehouse facade, loading bays, wet pavement, and one clean black SUV arriving with purpose",
+      "style": "cinematic editorial real estate photography",
+      "composition": "wide frame, warehouse dominating the image, arrival moment implied rather than crowded",
+      "lighting": "fresh post-storm sunrise light with dramatic cloud breakup and reflective pavement",
+      "palette": "slate, wet asphalt black, rusted steel, sunrise gold",
+      "materials": "corrugated metal, concrete dock, rain reflections, glass headlights",
+      "constraints": "no readable text; no visible brands; no watermark",
+      "negative": "action movie chaos; exaggerated explosions; glossy luxury brochure look"
+    },
+    {
+      "id": "closing_fortress_balance_sheet_image",
+      "prompt": "fortress balance sheet concept rendered as a premium real estate still life",
+      "use_case": "stylized-concept",
+      "scene": "dark architectural workspace with site plans, ruler, calculator, and stacked documents arranged with fortress-like geometry",
+      "subject": "financial discipline and resilience expressed through objects rather than people",
+      "style": "cinematic concept still life grounded in real materials",
+      "composition": "wide dramatic tabletop composition with strong geometry and a subtle sense of defensive strength",
+      "lighting": "controlled pool of warm light over the desk against a deep shadow background",
+      "palette": "charcoal, warm ivory paper, muted brass, restrained teal accents",
+      "materials": "paper, vellum, brass ruler, matte calculator, textured desk surface",
+      "constraints": "no readable text; no logos; no watermark; no literal fantasy fortress",
+      "negative": "glowing holograms; cheesy fintech aesthetic; purple neon; clutter"
+    }
+  ]
+}

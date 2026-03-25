@@ -23,18 +23,15 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from config.settings import COLORS, TTS_INSTRUCTIONS, TTS_VOICE
+from scripts.episode_visual_assets import VisualAsset, build_visual_sequence, resolve_visual_assets
 from scripts.tts_generator import generate_voiceover
 
 LOGGER = logging.getLogger("custom_episode_builder")
 DATA_DIR = REPO_ROOT / "data"
 OUTPUT_DIR = REPO_ROOT / "output"
-SORA_DIR = REPO_ROOT / "assets" / "sora"
 FIG_WIDTH = 25.6
 FIG_HEIGHT = 14.4
 FIG_DPI = 100
-VIDEO_WIDTH = 1920
-VIDEO_HEIGHT = 1080
-FPS = 30
 PANEL_ALPHA = 0.92
 HIGHLIGHT_ALPHA = 0.16
 
@@ -93,19 +90,6 @@ def media_duration(path: Path) -> float:
         check=True,
     )
     return float(result.stdout.strip())
-
-
-def resolve_visual_clips(spec: dict[str, Any], section: dict[str, Any]) -> list[Path]:
-    """Resolve existing Sora clip paths for a section."""
-    clip_paths: list[Path] = []
-    for clip_id in section.get("visual_clips", []):
-        clip_path = SORA_DIR / spec["slug"] / f"{clip_id}.mp4"
-        if clip_path.exists():
-            clip_paths.append(clip_path)
-        else:
-            LOGGER.warning("Missing visual clip for %s: %s", section["id"], clip_path)
-    return clip_paths
-
 
 def wrap_text(text: str, width: int) -> str:
     """Wrap text without importing additional dependencies."""
@@ -283,135 +267,6 @@ def build_scene_clip(image_path: Path, audio_path: Path, output_path: Path) -> f
     build_section_clip(image_path, audio_path, output_path, duration, [])
     return duration
 
-
-def section_visual_plan(duration: float, clip_count: int) -> tuple[float, float]:
-    """Return intro and b-roll durations for a section."""
-    if clip_count <= 0 or duration < 10:
-        return duration, 0.0
-    intro_duration = min(4.0, max(2.5, duration * 0.12))
-    max_broll = min(16.0, 8.0 * clip_count, duration * 0.4)
-    broll_duration = min(max_broll, max(0.0, duration - intro_duration - 3.0))
-    if broll_duration < 4.0:
-        return duration, 0.0
-    return intro_duration, broll_duration
-
-
-def still_video_filter(duration: float) -> str:
-    """Return the ffmpeg filter used for animated still-image sections."""
-    drift_width = VIDEO_WIDTH + 180
-    drift_height = VIDEO_HEIGHT + 100
-    x_range = drift_width - VIDEO_WIDTH
-    y_range = drift_height - VIDEO_HEIGHT
-    safe_duration = max(duration, 0.1)
-    return (
-        f"scale={drift_width}:{drift_height},"
-        f"crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}:"
-        f"x='({x_range}/2)-({x_range}*0.32*min(t/{safe_duration:.3f},1))':"
-        f"y='({y_range}/2)-({y_range}*0.18*min(t/{safe_duration:.3f},1))',"
-        "format=yuv420p"
-    )
-
-
-def build_still_video(image_path: Path, output_path: Path, duration: float) -> None:
-    """Create a silent video from a still image with subtle camera drift."""
-    run_ffmpeg(
-        [
-            "ffmpeg",
-            "-y",
-            "-loop",
-            "1",
-            "-framerate",
-            str(FPS),
-            "-i",
-            str(image_path),
-            "-t",
-            f"{duration:.3f}",
-            "-filter:v",
-            still_video_filter(duration),
-            "-c:v",
-            "libx264",
-            "-preset",
-            "fast",
-            "-crf",
-            "23",
-            "-an",
-            str(output_path),
-        ]
-    )
-
-
-def normalize_video_clip(input_path: Path, output_path: Path, duration: float) -> None:
-    """Normalize a video clip to the project output format and duration."""
-    run_ffmpeg(
-        [
-            "ffmpeg",
-            "-y",
-            "-i",
-            str(input_path),
-            "-t",
-            f"{duration:.3f}",
-            "-vf",
-            (
-                f"scale={VIDEO_WIDTH}:{VIDEO_HEIGHT}:force_original_aspect_ratio=decrease,"
-                f"pad={VIDEO_WIDTH}:{VIDEO_HEIGHT}:(ow-iw)/2:(oh-ih)/2,"
-                "fps=30,format=yuv420p"
-            ),
-            "-c:v",
-            "libx264",
-            "-preset",
-            "fast",
-            "-crf",
-            "23",
-            "-an",
-            str(output_path),
-        ]
-    )
-
-
-def build_visual_sequence(
-    image_path: Path,
-    output_path: Path,
-    duration: float,
-    visual_clips: list[Path],
-) -> None:
-    """Build the silent visual sequence for a section."""
-    intro_duration, broll_duration = section_visual_plan(duration, len(visual_clips))
-    if not visual_clips or broll_duration == 0.0:
-        build_still_video(image_path, output_path, duration)
-        return
-
-    work_dir = output_path.parent / f"{output_path.stem}_parts"
-    if work_dir.exists():
-        shutil.rmtree(work_dir)
-    work_dir.mkdir(parents=True, exist_ok=True)
-
-    part_paths: list[Path] = []
-    intro_path = work_dir / "intro.mp4"
-    build_still_video(image_path, intro_path, intro_duration)
-    part_paths.append(intro_path)
-
-    per_clip_budget = broll_duration / len(visual_clips)
-    actual_broll = 0.0
-    for index, clip_path in enumerate(visual_clips):
-        remaining = broll_duration - actual_broll
-        if remaining <= 0.05:
-            break
-        clip_duration = remaining if index == len(visual_clips) - 1 else min(per_clip_budget, remaining)
-        normalized_path = work_dir / f"broll_{index:02d}.mp4"
-        normalize_video_clip(clip_path, normalized_path, clip_duration)
-        part_paths.append(normalized_path)
-        actual_broll += clip_duration
-
-    remaining_duration = max(0.0, duration - intro_duration - actual_broll)
-    if remaining_duration > 0.05:
-        outro_path = work_dir / "outro.mp4"
-        build_still_video(image_path, outro_path, remaining_duration)
-        part_paths.append(outro_path)
-
-    concat_media(part_paths, output_path)
-    shutil.rmtree(work_dir)
-
-
 def mux_audio(video_path: Path, audio_path: Path, output_path: Path) -> None:
     """Mux section audio onto a prebuilt silent visual sequence."""
     run_ffmpeg(
@@ -443,11 +298,11 @@ def build_section_clip(
     audio_path: Path,
     output_path: Path,
     duration: float,
-    visual_clips: list[Path],
+    visual_assets: list[VisualAsset],
 ) -> None:
-    """Build one final section clip, optionally splicing in Sora visuals."""
+    """Build one final section clip, optionally splicing in generated visuals."""
     silent_path = output_path.with_name(f"{output_path.stem}_silent.mp4")
-    build_visual_sequence(image_path, silent_path, duration, visual_clips)
+    build_visual_sequence(image_path, silent_path, duration, visual_assets, run_ffmpeg, concat_media)
     mux_audio(silent_path, audio_path, output_path)
     silent_path.unlink(missing_ok=True)
 
@@ -502,12 +357,12 @@ def build_episode(spec_path: Path, force: bool = False, keep_build: bool = False
         section_audio = build_dir / f"{index:02d}_{section['id']}.mp3"
         section_image = build_dir / f"{index:02d}_{section['id']}.png"
         section_clip = build_dir / f"{index:02d}_{section['id']}.mp4"
-        visual_clips = resolve_visual_clips(spec, section)
+        visual_assets = resolve_visual_assets(spec, section, LOGGER)
         if force or not section_audio.exists():
             generate_section_audio(section, section_audio, voice, instructions)
         render_scene_image(spec, section, index, section_image)
         section_duration = media_duration(section_audio)
-        build_section_clip(section_image, section_audio, section_clip, section_duration, visual_clips)
+        build_section_clip(section_image, section_audio, section_clip, section_duration, visual_assets)
         clip_paths.append(section_clip)
         audio_parts.append(section_audio)
 

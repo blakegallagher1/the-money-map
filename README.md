@@ -24,6 +24,7 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 | Thumbnail V2 | `scripts/enhanced_thumbnail.py` | High-CTR thumbnails with bold headlines, curiosity gap design |
 | Final Assembly | `scripts/final_assembly.py` | Interleaves data-viz with AI b-roll, layers voiceover |
 | Custom Narrated Episodes | `scripts/custom_episode_builder.py` | Builds branded section-based narration videos from a JSON episode spec |
+| Episode Image Visuals | `scripts/episode_image_visuals.py` | Generates reusable still-image visuals from an episode image plan |
 | Sora Episode Visuals | `scripts/sora_episode_visuals.py` | Generates Sora clips from a shot plan and drops them into narrated episodes |
 | YouTube Upload | `scripts/youtube_uploader.py` | Browser-based upload automation |
 | Orchestrator | `scripts/orchestrator.py` | Full pipeline orchestrator |
@@ -74,6 +75,10 @@ python scripts/orchestrator.py
 # Build a narrated non-FRED episode from a JSON spec
 python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
 
+# Generate still-image visuals for a narrated episode, then rebuild with those visuals
+python scripts/episode_image_visuals.py --plan data/cre_balance_sheet_fortress/image_plan.json
+python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
+
 # Generate Sora clips for a narrated episode, then rebuild with those visuals
 python scripts/sora_episode_visuals.py --plan data/cre_balance_sheet_fortress/sora_shots.json
 python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
@@ -90,7 +95,7 @@ python scripts/final_assembly.py N
 
 Custom narrated episodes write their combined script to `data/<slug>/voiceover_script.txt`,
 their final voiceover MP3 to `data/<slug>/voiceover.mp3`, and their final video to
-`output/<slug>.mp4`.
+`output/<slug>.mp4`. Generated still-image visuals land under `output/imagegen/<slug>/`.
 
 ## License
 

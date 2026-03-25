@@ -8,8 +8,8 @@
     {
       "id": "opening_gap",
       "layout": "title",
-      "visual_clips": [
-        "opening_gap_underwriting_desk"
+      "visual_images": [
+        "opening_gap_balance_sheet_desk"
       ],
       "accent": "accent_coral",
       "kicker": "COMMERCIAL REAL ESTATE",
@@ -25,8 +25,8 @@
     {
       "id": "operating_reality",
       "layout": "statement",
-      "visual_clips": [
-        "opening_gap_underwriting_desk"
+      "visual_images": [
+        "opening_gap_balance_sheet_desk"
       ],
       "accent": "accent_teal",
       "kicker": "OPERATING REALITY",
@@ -43,6 +43,9 @@
     {
       "id": "framework",
       "layout": "framework",
+      "visual_images": [
+        "reserve_optionality_office_image"
+      ],
       "accent": "accent_blue",
       "kicker": "THE FRAMEWORK",
       "headline": "Capacity And Temperament",
@@ -57,8 +60,8 @@
     {
       "id": "preserve",
       "layout": "quadrant",
-      "visual_clips": [
-        "preserve_stalled_jobsite"
+      "visual_images": [
+        "preserve_stalled_jobsite_image"
       ],
       "accent": "accent_amber",
       "quadrant": "preserve",
@@ -76,8 +79,8 @@
     {
       "id": "expose_ambition",
       "layout": "quadrant",
-      "visual_clips": [
-        "expose_storm_highrise"
+      "visual_images": [
+        "expose_storm_highrise_image"
       ],
       "accent": "negative",
       "quadrant": "expose",
@@ -95,8 +98,8 @@
     {
       "id": "expose_mismatch",
       "layout": "quadrant",
-      "visual_clips": [
-        "expose_storm_highrise"
+      "visual_images": [
+        "expose_storm_highrise_image"
       ],
       "accent": "negative",
       "quadrant": "expose",
@@ -114,8 +117,8 @@
     {
       "id": "reserve",
       "layout": "quadrant",
-      "visual_clips": [
-        "opening_gap_underwriting_desk"
+      "visual_images": [
+        "reserve_optionality_office_image"
       ],
       "accent": "accent_teal",
       "quadrant": "reserve",
@@ -133,8 +136,8 @@
     {
       "id": "attack_setup",
       "layout": "quadrant",
-      "visual_clips": [
-        "expose_storm_highrise"
+      "visual_images": [
+        "attack_distressed_asset_image"
       ],
       "accent": "accent_green",
       "quadrant": "attack",
@@ -152,8 +155,8 @@
     {
       "id": "attack_advantage",
       "layout": "quadrant",
-      "visual_clips": [
-        "expose_storm_highrise"
+      "visual_images": [
+        "attack_distressed_asset_image"
       ],
       "accent": "accent_green",
       "quadrant": "attack",
@@ -171,8 +174,8 @@
     {
       "id": "point_breaks",
       "layout": "statement",
-      "visual_clips": [
-        "preserve_stalled_jobsite"
+      "visual_images": [
+        "expose_storm_highrise_image"
       ],
       "accent": "accent_coral",
       "kicker": "THE POINT",
@@ -189,8 +192,8 @@
     {
       "id": "point_winners",
       "layout": "statement",
-      "visual_clips": [
-        "opening_gap_underwriting_desk"
+      "visual_images": [
+        "closing_fortress_balance_sheet_image"
       ],
       "accent": "accent_blue",
       "kicker": "WHO WINS",
@@ -207,8 +210,8 @@
     {
       "id": "closing_map",
       "layout": "closing",
-      "visual_clips": [
-        "opening_gap_underwriting_desk"
+      "visual_images": [
+        "closing_fortress_balance_sheet_image"
       ],
       "accent": "accent_teal",
       "kicker": "STRATEGIC MAP",

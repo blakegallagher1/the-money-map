@@ -4,13 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from scripts.custom_episode_builder import (
-    build_full_script,
-    color_for,
-    load_episode_spec,
-    section_visual_plan,
-    still_video_filter,
-)
+from scripts.custom_episode_builder import build_full_script, color_for, load_episode_spec
+from scripts.episode_image_visuals import build_image_command
+from scripts.episode_visual_assets import section_visual_plan, still_video_filter
 from scripts.sora_episode_visuals import build_sora_command
 
 
@@ -79,3 +75,27 @@ def test_build_sora_command_includes_prompt_fields(tmp_path: Path) -> None:
     assert "empty office" in command
     assert "--constraints" in command
     assert str(video_path) in command
+
+
+def test_build_image_command_includes_prompt_fields(tmp_path: Path) -> None:
+    """The image command should pass through the structured prompt fields."""
+    out_path = tmp_path / "image.png"
+    command = build_image_command(
+        {
+            "id": "desk",
+            "prompt": "cinematic underwriting desk",
+            "scene": "night office",
+            "constraints": "no text",
+        },
+        model="gpt-image-1.5",
+        size="1536x1024",
+        quality="high",
+        output_format="png",
+        out_path=out_path,
+        force=False,
+        dry_run=False,
+    )
+    assert "--scene" in command
+    assert "night office" in command
+    assert "--constraints" in command
+    assert str(out_path) in command
