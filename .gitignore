@@ -1,4 +1,5 @@
 output/*.mp4
+output/*_build/
 output/pilot/
 output/ep*/
 assets/broll_video/*.mp4
@@ -11,6 +12,7 @@ data/*_v2/voiceover.mp3
 __pycache__/
 *.pyc
 .DS_Store
+.claude/
 tool_calls/
 output/voiceover.mp3
 output/channel_banner.png

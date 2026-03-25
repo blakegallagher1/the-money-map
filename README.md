@@ -23,6 +23,7 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 | Thumbnail V1 | `scripts/thumbnail_gen.py` | Basic stat-focused thumbnails |
 | Thumbnail V2 | `scripts/enhanced_thumbnail.py` | High-CTR thumbnails with bold headlines, curiosity gap design |
 | Final Assembly | `scripts/final_assembly.py` | Interleaves data-viz with AI b-roll, layers voiceover |
+| Custom Narrated Episodes | `scripts/custom_episode_builder.py` | Builds branded section-based narration videos from a JSON episode spec |
 | YouTube Upload | `scripts/youtube_uploader.py` | Browser-based upload automation |
 | Orchestrator | `scripts/orchestrator.py` | Full pipeline orchestrator |
 
@@ -69,6 +70,9 @@ export FRED_API_KEY="your_key_here"
 # Full pipeline for one episode
 python scripts/orchestrator.py
 
+# Build a narrated non-FRED episode from a JSON spec
+python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
+
 # Just render enhanced episode N
 python scripts/enhanced_renderer.py N
 
@@ -78,6 +82,10 @@ python scripts/enhanced_thumbnail.py N
 # Full assembly with b-roll interleaving
 python scripts/final_assembly.py N
 ```
+
+Custom narrated episodes write their combined script to `data/<slug>/voiceover_script.txt`,
+their final voiceover MP3 to `data/<slug>/voiceover.mp3`, and their final video to
+`output/<slug>.mp4`.
 
 ## License
 
