@@ -22,3 +22,5 @@ client_secret.json
 token.json
 assets/music/*.mp3
 assets/broll_cache/
+assets/sora/**/*.mp4
+assets/sora/**/*.json

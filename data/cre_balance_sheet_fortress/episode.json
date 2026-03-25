@@ -8,6 +8,9 @@
     {
       "id": "opening_gap",
       "layout": "title",
+      "visual_clips": [
+        "opening_gap_underwriting_desk"
+      ],
       "accent": "accent_coral",
       "kicker": "COMMERCIAL REAL ESTATE",
       "headline": "The Deal Rarely Kills You",
@@ -22,6 +25,9 @@
     {
       "id": "operating_reality",
       "layout": "statement",
+      "visual_clips": [
+        "opening_gap_underwriting_desk"
+      ],
       "accent": "accent_teal",
       "kicker": "OPERATING REALITY",
       "headline": "What The Statement Really Tells You",
@@ -51,6 +57,9 @@
     {
       "id": "preserve",
       "layout": "quadrant",
+      "visual_clips": [
+        "preserve_stalled_jobsite"
+      ],
       "accent": "accent_amber",
       "quadrant": "preserve",
       "kicker": "LOW CAPACITY / LOW TEMPERAMENT",
@@ -67,6 +76,9 @@
     {
       "id": "expose_ambition",
       "layout": "quadrant",
+      "visual_clips": [
+        "expose_storm_highrise"
+      ],
       "accent": "negative",
       "quadrant": "expose",
       "kicker": "LOW CAPACITY / HIGH TEMPERAMENT",
@@ -83,6 +95,9 @@
     {
       "id": "expose_mismatch",
       "layout": "quadrant",
+      "visual_clips": [
+        "expose_storm_highrise"
+      ],
       "accent": "negative",
       "quadrant": "expose",
       "kicker": "WHEN MISMATCH TURNS LETHAL",
@@ -99,6 +114,9 @@
     {
       "id": "reserve",
       "layout": "quadrant",
+      "visual_clips": [
+        "opening_gap_underwriting_desk"
+      ],
       "accent": "accent_teal",
       "quadrant": "reserve",
       "kicker": "HIGH CAPACITY / LOW TEMPERAMENT",
@@ -115,6 +133,9 @@
     {
       "id": "attack_setup",
       "layout": "quadrant",
+      "visual_clips": [
+        "expose_storm_highrise"
+      ],
       "accent": "accent_green",
       "quadrant": "attack",
       "kicker": "HIGH CAPACITY / HIGH TEMPERAMENT",
@@ -131,6 +152,9 @@
     {
       "id": "attack_advantage",
       "layout": "quadrant",
+      "visual_clips": [
+        "expose_storm_highrise"
+      ],
       "accent": "accent_green",
       "quadrant": "attack",
       "kicker": "FORTRESS BALANCE SHEET",
@@ -147,6 +171,9 @@
     {
       "id": "point_breaks",
       "layout": "statement",
+      "visual_clips": [
+        "preserve_stalled_jobsite"
+      ],
       "accent": "accent_coral",
       "kicker": "THE POINT",
       "headline": "Eventually Something Breaks",
@@ -162,6 +189,9 @@
     {
       "id": "point_winners",
       "layout": "statement",
+      "visual_clips": [
+        "opening_gap_underwriting_desk"
+      ],
       "accent": "accent_blue",
       "kicker": "WHO WINS",
       "headline": "Survive. Choose. Strike.",
@@ -177,6 +207,9 @@
     {
       "id": "closing_map",
       "layout": "closing",
+      "visual_clips": [
+        "opening_gap_underwriting_desk"
+      ],
       "accent": "accent_teal",
       "kicker": "STRATEGIC MAP",
       "headline": "Fortress Balance Sheets Keep You In The Game",

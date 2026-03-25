@@ -2,6 +2,22 @@
 
 ## Active Sprint
 
+### [ ] CRE Balance Sheet Sora Upgrade
+- **Goal**: Improve the narrated CRE balance-sheet video with Sora-generated cinematic section visuals while keeping the existing voiceover and timing intact
+- **Branch**: `main`
+- **Steps**:
+  - [x] Define a reusable Sora shot plan for the episode
+  - [x] Add repo-local Sora generation and builder integration paths
+  - [x] Generate Sora clips and rebuild the upgraded episode
+  - [x] Verify the upgraded export and ship the code path
+- **Verification**:
+  - [x] Baseline test suite run recorded (`python -m pytest`)
+  - [x] Sora clips generated successfully for targeted sections
+  - [x] Upgraded final video renders successfully
+  - [x] `ffprobe` confirms output durations/codecs
+- **Status**: complete
+- **Review**: Added `scripts/sora_episode_visuals.py`, wired `scripts/custom_episode_builder.py` to splice section-level Sora b-roll, updated `data/cre_balance_sheet_fortress/episode.json` to reuse the three completed Sora renders across the strongest-fit sections, and rebuilt `output/cre_balance_sheet_fortress.mp4` with subtle motion on non-Sora sections. Full six-shot generation was planned, but live rendering stopped after three successful clips when the OpenAI account hit a Sora billing hard limit.
+
 ### [x] CRE Balance Sheet Narrated Episode
 - **Goal**: Produce a finished narrated audio track and video for the supplied CRE script about personal financial statements and risk capacity
 - **Branch**: `main`

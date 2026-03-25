@@ -24,6 +24,7 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 | Thumbnail V2 | `scripts/enhanced_thumbnail.py` | High-CTR thumbnails with bold headlines, curiosity gap design |
 | Final Assembly | `scripts/final_assembly.py` | Interleaves data-viz with AI b-roll, layers voiceover |
 | Custom Narrated Episodes | `scripts/custom_episode_builder.py` | Builds branded section-based narration videos from a JSON episode spec |
+| Sora Episode Visuals | `scripts/sora_episode_visuals.py` | Generates Sora clips from a shot plan and drops them into narrated episodes |
 | YouTube Upload | `scripts/youtube_uploader.py` | Browser-based upload automation |
 | Orchestrator | `scripts/orchestrator.py` | Full pipeline orchestrator |
 
@@ -71,6 +72,10 @@ export FRED_API_KEY="your_key_here"
 python scripts/orchestrator.py
 
 # Build a narrated non-FRED episode from a JSON spec
+python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
+
+# Generate Sora clips for a narrated episode, then rebuild with those visuals
+python scripts/sora_episode_visuals.py --plan data/cre_balance_sheet_fortress/sora_shots.json
 python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
 
 # Just render enhanced episode N
