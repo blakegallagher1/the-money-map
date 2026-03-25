@@ -2,6 +2,22 @@
 
 ## Active Sprint
 
+### [x] CRE Balance Sheet Narrated Episode
+- **Goal**: Produce a finished narrated audio track and video for the supplied CRE script about personal financial statements and risk capacity
+- **Branch**: `main`
+- **Steps**:
+  - [x] Structure the supplied script into reusable source assets and section metadata
+  - [x] Implement a custom section-based renderer/assembler for narrated non-FRED episodes
+  - [x] Generate voiceover audio and final video exports for this episode
+  - [x] Verify artifact integrity and document output paths + durations
+- **Verification**:
+  - [x] Baseline test suite run recorded (`python -m pytest`)
+  - [x] Voiceover audio generated successfully
+  - [x] Final video renders successfully
+  - [x] `ffprobe` confirms output durations/codecs
+- **Status**: complete
+- **Review**: Added `scripts/custom_episode_builder.py`, committed the supplied CRE script as `data/cre_balance_sheet_fortress/episode.json`, added a small pytest slice for the builder helpers, and produced `data/cre_balance_sheet_fortress/voiceover.mp3` (~474.55s) plus `output/cre_balance_sheet_fortress.mp4` (1920x1080 H.264/AAC, ~474.57s).
+
 ### [x] Video Automation Enhancement (V2 Pipeline)
 - **Goal**: Better, longer, higher-quality videos with full automation
 - **Branch**: `claude/video-automation-planning-sciHi`

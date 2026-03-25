@@ -1,4 +1,5 @@
 output/*.mp4
+output/*_build/
 output/pilot/
 output/ep*/
 assets/broll_video/*.mp4
