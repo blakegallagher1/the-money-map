@@ -115,39 +115,44 @@ def normalize_voiceover(input_path, output_path):
     return output_path
 
 
-def select_music(script_data):
-    """Pick a background music track based on story sentiment.
+def select_music(script_data, output_dir=None):
+    """Pick a background music track — AI-generated or static.
+
+    Priority order:
+    1. Generate a unique track via Suno API (if SUNO_API_KEY is set)
+    2. Use a cached AI-generated track for this mood
+    3. Fall back to static tracks in assets/music/
+    4. Return None (episode will have voice-only audio)
 
     Returns the path to the selected music file, or None if no music available.
     """
-    yoy_pct = script_data.get('primary_metric', {}).get('yoy_pct', 0)
-    tags = script_data.get('primary_metric', {}).get('tags', [])
+    from scripts.music_generator import determine_mood, generate_episode_music
 
-    # Determine sentiment
-    if 'dramatic_change' in tags and abs(yoy_pct) > 20:
-        sentiment = "dramatic"
-    elif yoy_pct < -10 or 'consumer_pain_point' in tags:
-        sentiment = "tense"
-    elif yoy_pct > 10:
-        sentiment = "hopeful"
-    else:
-        sentiment = "neutral"
+    mood = determine_mood(script_data)
 
-    track_file = MUSIC_TRACKS.get(sentiment, "neutral.mp3")
+    # Try AI generation first (uses cache if available)
+    ai_track = generate_episode_music(mood, output_dir=output_dir)
+    if ai_track and os.path.exists(ai_track):
+        print(f"  Using AI-generated music: {mood}")
+        return ai_track
+
+    # Fall back to static tracks
+    print(f"  AI music unavailable — checking static tracks for '{mood}'...")
+    track_file = MUSIC_TRACKS.get(mood, "neutral.mp3")
     track_path = os.path.join(MUSIC_DIR, track_file)
 
     if os.path.exists(track_path):
-        print(f"  Selected music: {sentiment} ({track_file})")
+        print(f"  Selected static music: {mood} ({track_file})")
         return track_path
 
-    # Try fallback to any available track
+    # Try fallback to any available static track
     for name, filename in MUSIC_TRACKS.items():
         fallback = os.path.join(MUSIC_DIR, filename)
         if os.path.exists(fallback):
-            print(f"  Fallback music: {name} ({filename})")
+            print(f"  Fallback static music: {name} ({filename})")
             return fallback
 
-    print("  No music tracks found in assets/music/")
+    print("  No music available (set SUNO_API_KEY for AI generation, or add tracks to assets/music/)")
     return None
 
 
@@ -204,7 +209,7 @@ def process_audio(voiceover_path, script_data, output_dir):
     voiceover_path = normalize_voiceover(voiceover_path, normalized_path)
 
     # Step 2: Select and mix music
-    music_path = select_music(script_data)
+    music_path = select_music(script_data, output_dir=output_dir)
 
     if music_path is None:
         print("  Skipping music mix — no tracks available")

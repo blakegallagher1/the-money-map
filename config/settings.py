@@ -13,6 +13,7 @@ CENSUS_API_KEY = os.environ.get("CENSUS_API_KEY", "")  # Pending email activatio
 BLS_API_KEY = os.environ.get("BLS_API_KEY", "")  # Pending email activation
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 LUMA_API_KEY = os.environ.get("LUMA_API_KEY", "")
+SUNO_API_KEY = os.environ.get("SUNO_API_KEY", "")  # For AI background music generation
 
 # --- LLM Script Writer ---
 SCRIPT_LLM_MODEL = "gpt-5.4"
