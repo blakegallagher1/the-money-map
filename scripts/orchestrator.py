@@ -231,7 +231,7 @@ def step_quality_gate(script_data, results):
 
 
 def step_upload(script_data, video_path, thumbnail_path):
-    log("STEP 7: Uploading to YouTube...")
+    log("STEP 8: Uploading to YouTube...")
     from scripts.youtube_api_uploader import upload_video
 
     result = upload_video(
@@ -414,7 +414,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The Money Map Pipeline V2')
     parser.add_argument('--step', default='data',
                        choices=['data', 'story', 'script', 'broll', 'voiceover',
-                                'music', 'render', 'assemble', 'thumbnail', 'upload', 'record'])
+                                'music', 'render', 'assemble', 'thumbnail', 'quality_gate',
+                                'upload', 'record'])
     parser.add_argument('--script-mode', default='llm', choices=['llm', 'template'],
                        help='Script generation mode: llm (GPT-5.2) or template')
     parser.add_argument('--dry-run', action='store_true',
