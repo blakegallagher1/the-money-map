@@ -116,7 +116,7 @@ def step_broll(script_data):
 
 def step_voiceover():
     log("STEP 4: Voiceover generation...")
-    vo_path = os.path.join(OUTPUT_DIR, 'voiceover.mp3')
+    vo_path = os.path.join(OUTPUT_DIR, 'voiceover.wav')
     script_path = os.path.join(DATA_DIR, 'voiceover_script.txt')
 
     if os.path.exists(vo_path):
@@ -207,7 +207,7 @@ def step_quality_gate(script_data, results):
     from scripts.episode_tracker import load_history
 
     artifact_paths = {
-        "voiceover_path": results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.mp3')),
+        "voiceover_path": results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.wav')),
         "thumbnail_path": results.get('thumbnail', os.path.join(OUTPUT_DIR, 'thumbnail.png')),
         "final_video_path": results.get(
             'final_video', os.path.join(OUTPUT_DIR, 'latest_final.mp4')
@@ -348,7 +348,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             results['voiceover'] = step_voiceover()
 
         # Step 4.5: Background music (optional)
-        vo_path = results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.mp3'))
+        vo_path = results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.wav'))
         if start_idx <= 6 and not no_music:
             try:
                 results['audio'] = step_music(vo_path, script_data)

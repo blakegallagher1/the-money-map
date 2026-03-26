@@ -143,9 +143,9 @@ def add_background(ax: plt.Axes, accent: str) -> None:
 
 def add_chrome(ax: plt.Axes, section: dict[str, Any], index: int, total: int, accent: str) -> None:
     """Draw the shared header, footer, and progress bar."""
-    kicker = section.get("kicker", "THE MONEY MAP")
+    kicker = section.get("kicker", "BRICK & YIELD")
     ax.text(0.06, 0.92, kicker, fontsize=22, fontweight="bold", color=accent)
-    ax.text(0.94, 0.92, "THE MONEY MAP", fontsize=18, ha="right", color=COLORS["text_muted"])
+    ax.text(0.94, 0.92, "BRICK & YIELD", fontsize=18, ha="right", color=COLORS["text_muted"])
     progress = (index + 1) / total
     ax.add_patch(Rectangle((0.06, 0.08), 0.88, 0.008, color=COLORS["border"], alpha=0.8))
     ax.add_patch(Rectangle((0.06, 0.08), 0.88 * progress, 0.008, color=accent, alpha=0.95))
@@ -282,7 +282,7 @@ def mux_audio(video_path: Path, audio_path: Path, output_path: Path) -> None:
             "-c:a",
             "aac",
             "-b:a",
-            "192k",
+            "320k",
             "-map",
             "0:v:0",
             "-map",
@@ -340,7 +340,7 @@ def build_episode(spec_path: Path, force: bool = False, keep_build: bool = False
     episode_dir = DATA_DIR / slug
     build_dir = OUTPUT_DIR / f"{slug}_build"
     video_path = OUTPUT_DIR / f"{slug}.mp4"
-    audio_path = episode_dir / "voiceover.mp3"
+    audio_path = episode_dir / "voiceover.wav"
     voice = spec.get("voice", TTS_VOICE)
     instructions = spec.get("instructions", TTS_INSTRUCTIONS)
 

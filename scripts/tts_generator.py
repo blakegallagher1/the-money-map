@@ -95,7 +95,7 @@ def generate_voiceover(
 
     Args:
         script_path: Path to plain-text script. Defaults to data/voiceover_script.txt.
-        output_path: Where to save the MP3. Defaults to output/voiceover.mp3.
+        output_path: Where to save the MP3. Defaults to output/voiceover.wav.
         voice: OpenAI voice name. Defaults to settings.TTS_VOICE.
         instructions: Style instructions. Defaults to settings.TTS_INSTRUCTIONS.
 
@@ -103,7 +103,7 @@ def generate_voiceover(
         str: Absolute path to the generated MP3 file.
     """
     script_path = script_path or os.path.join(DATA_DIR, 'voiceover_script.txt')
-    output_path = output_path or os.path.join(OUTPUT_DIR, 'voiceover.mp3')
+    output_path = output_path or os.path.join(OUTPUT_DIR, 'voiceover.wav')
     voice = voice or TTS_VOICE
     instructions = instructions or TTS_INSTRUCTIONS
 
@@ -124,7 +124,7 @@ def generate_voiceover(
             voice=voice,
             input=chunks[0],
             instructions=instructions,
-            response_format="mp3",
+            response_format="wav",
         )
         response.stream_to_file(output_path)
     else:
@@ -133,14 +133,14 @@ def generate_voiceover(
         try:
             for i, chunk in enumerate(chunks):
                 temp_path = os.path.join(
-                    tempfile.gettempdir(), f"tmm_tts_chunk_{i}.mp3"
+                    tempfile.gettempdir(), f"tmm_tts_chunk_{i}.wav"
                 )
                 response = client.audio.speech.create(
                     model=TTS_MODEL,
                     voice=voice,
                     input=chunk,
                     instructions=instructions,
-                    response_format="mp3",
+                    response_format="wav",
                 )
                 response.stream_to_file(temp_path)
                 temp_files.append(temp_path)

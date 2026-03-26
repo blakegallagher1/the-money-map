@@ -31,7 +31,7 @@ def normalize_broll(broll_path, output_path):
     subprocess.run([
         'ffmpeg', '-y', '-i', broll_path,
         '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
-        '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+        '-c:v', 'libx264', '-preset', 'medium', '-crf', '18',
         '-r', '30', '-pix_fmt', 'yuv420p',
         '-an',
         output_path
@@ -116,8 +116,8 @@ def assemble_episode_dynamic(dataviz_path, broll_paths, audio_path, output_path,
         duration = end - start
         subprocess.run([
             'ffmpeg', '-y', '-ss', str(start), '-i', dataviz_path,
-            '-t', str(duration), '-c:v', 'libx264', '-preset', 'fast',
-            '-crf', '23', '-an', '-pix_fmt', 'yuv420p', seg_path
+            '-t', str(duration), '-c:v', 'libx264', '-preset', 'medium',
+            '-crf', '18', '-an', '-pix_fmt', 'yuv420p', seg_path
         ], capture_output=True, text=True, timeout=120, check=True)
         seg_files[name] = seg_path
 
@@ -158,7 +158,7 @@ def assemble_episode_dynamic(dataviz_path, broll_paths, audio_path, output_path,
     print("  Mixing audio...")
     subprocess.run([
         'ffmpeg', '-y', '-i', silent_path, '-i', audio_path,
-        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k',
         '-map', '0:v:0', '-map', '1:a:0', '-shortest',
         output_path
     ], capture_output=True, text=True, timeout=120, check=True)
@@ -188,7 +188,7 @@ def assemble_episode(ep_num):
         'context': os.path.join(BROLL_DIR, f'broll_ep{ep_num}_context_vid.mp4'),
         'insight': os.path.join(BROLL_DIR, f'broll_ep{ep_num}_insight_vid.mp4'),
     }
-    vo_path = os.path.join(BASE, f'data/ep{ep_num}_v2/voiceover.mp3')
+    vo_path = os.path.join(BASE, f'data/ep{ep_num}_v2/voiceover.wav')
     output_path = os.path.join(OUTPUT_DIR, f'ep{ep_num}_enhanced.mp4')
 
     return assemble_episode_dynamic(dataviz_path, broll_paths, vo_path, output_path)

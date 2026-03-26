@@ -30,7 +30,7 @@ def _normalize_clip(input_path, output_path):
         'ffmpeg', '-y', '-i', input_path,
         '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,'
                'pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
-        '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+        '-c:v', 'libx264', '-preset', 'medium', '-crf', '18',
         '-r', '30', '-pix_fmt', 'yuv420p',
         '-an',
         output_path

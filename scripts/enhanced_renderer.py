@@ -30,7 +30,7 @@ from config.settings import COLORS, FRED_SERIES
 from scripts.data_ingestion import FREDClient
 
 # Global render settings
-RENDER_FPS = 10  # Render at 10fps, output 30fps
+RENDER_FPS = 30  # Native 30fps rendering
 W, H = 19.2, 10.8  # Figure size (1920x1080 at 100dpi)
 DPI = 100
 
@@ -85,7 +85,7 @@ def draw_particles(ax, n=30, t=0, color='#00D4AA', seed=42):
 
 def draw_watermark(ax, alpha=0.35):
     """Brand watermark."""
-    ax.text(0.95, 0.04, "THE MONEY MAP", fontsize=11, ha='right',
+    ax.text(0.95, 0.04, "BRICK & YIELD", fontsize=11, ha='right',
             color=COLORS['text_muted'], alpha=alpha, fontweight='bold',
             style='italic', transform=ax.transAxes)
 
@@ -156,7 +156,7 @@ def frames_to_video(frame_dir, output_path, fps=RENDER_FPS):
     subprocess.run([
         "ffmpeg", "-y", "-framerate", str(fps), "-i",
         os.path.join(frame_dir, "frame_%04d.png"),
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "18",
         "-r", "30", "-pix_fmt", "yuv420p", output_path
     ], capture_output=True, text=True, timeout=300, check=True)
 
@@ -438,7 +438,7 @@ def render_scene_chart(script_data, base_dir, duration_sec=55):
         ax.text(0.99, -0.07, "Source: FRED (Federal Reserve Economic Data)",
                 transform=ax.transAxes, fontsize=10, color=COLORS['text_muted'],
                 ha='right', va='top')
-        ax.text(0.01, -0.07, "THE MONEY MAP", transform=ax.transAxes,
+        ax.text(0.01, -0.07, "BRICK & YIELD", transform=ax.transAxes,
                 fontsize=10, color=COLORS['text_muted'], ha='left', va='top', fontweight='bold')
         
         plt.tight_layout(pad=2)
@@ -550,7 +550,7 @@ def render_scene_context(script_data, base_dir, duration_sec=40):
                         color=bc, alpha=cp * 0.85, ha='right', va='center')
         
         # Source line
-        ax.text(0.5, 0.04, "Source: FRED  |  THE MONEY MAP", fontsize=11,
+        ax.text(0.5, 0.04, "Source: FRED  |  BRICK & YIELD", fontsize=11,
                 ha='center', color=COLORS['text_muted'], alpha=min(p * 2, 0.5))
         
         plt.tight_layout(pad=0)
@@ -674,7 +674,7 @@ def render_scene_close(script_data, base_dir, duration_sec=12):
         
         # Brand name
         brand_a = ease_out_cubic(min(p * 2.5, 1.0))
-        ax.text(0.5, 0.58, "THE MONEY MAP", fontsize=52, fontweight='bold',
+        ax.text(0.5, 0.58, "BRICK & YIELD", fontsize=52, fontweight='bold',
                 ha='center', color='white', alpha=brand_a)
         
         # Glowing underline
@@ -774,13 +774,13 @@ def render_episode(ep_num, script_path, output_dir):
     ], capture_output=True, text=True, timeout=120, check=True)
     
     # Mix with voiceover
-    vo_path = f'/home/user/workspace/the-money-map/data/ep{ep_num}_v2/voiceover.mp3'
+    vo_path = os.path.join(BASE, f'data/ep{ep_num}_v2/voiceover.wav')
     final_path = os.path.join(output_dir, f"ep{ep_num}_v2_final.mp4")
     
     if os.path.exists(vo_path):
         subprocess.run([
             "ffmpeg", "-y", "-i", silent, "-i", vo_path,
-            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+            "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
             "-map", "0:v:0", "-map", "1:a:0", "-shortest", final_path
         ], capture_output=True, text=True, timeout=120, check=True)
     else:

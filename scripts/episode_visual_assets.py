@@ -113,9 +113,9 @@ def build_still_video(
             "-c:v",
             "libx264",
             "-preset",
-            "fast",
+            "medium",
             "-crf",
-            "23",
+            "18",
             "-an",
             str(output_path),
         ]
@@ -146,9 +146,9 @@ def normalize_video_clip(
             "-c:v",
             "libx264",
             "-preset",
-            "fast",
+            "medium",
             "-crf",
-            "23",
+            "18",
             "-an",
             str(output_path),
         ]
