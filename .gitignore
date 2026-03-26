@@ -22,3 +22,6 @@ client_secret.json
 token.json
 assets/music/*.mp3
 assets/broll_cache/
+output/research/
+output/imagegen/
+assets/sora/
