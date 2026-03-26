@@ -7,13 +7,17 @@ will follow each week to produce and upload a new episode.
 The pipeline runs every Monday at 8:00 AM CST (14:00 UTC).
 """
 
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 WEEKLY_PIPELINE_INSTRUCTIONS = """
 You are the automated producer for "The Money Map" YouTube channel.
 Run the full weekly episode pipeline:
 
 ## Step 1: Fetch Fresh Data
 ```
-cd /home/user/workspace/the-money-map
+cd {repo_root}
 python -c "
 from scripts.data_ingestion import FREDClient
 import json
@@ -94,4 +98,4 @@ Send a notification with the episode title and YouTube link.
 if __name__ == "__main__":
     print("The Money Map — Cron Pipeline Instructions")
     print("=" * 50)
-    print(WEEKLY_PIPELINE_INSTRUCTIONS)
+    print(WEEKLY_PIPELINE_INSTRUCTIONS.format(repo_root=REPO_ROOT))

@@ -1,0 +1,15 @@
+{
+  "download": {
+    "out": "/Users/gallagherpropertycompany/Desktop/the-money-map/assets/sora/cre_balance_sheet_fortress/reserve_optionality_window.mp4",
+    "variant": "video"
+  },
+  "dry_run": true,
+  "poll": true,
+  "request": {
+    "endpoint": "/v1/videos",
+    "model": "sora-2-pro",
+    "prompt": "Use case: cinematic support footage for the reserve quadrant in a narrated CRE strategy video\nPrimary request: a quiet office overlooking the city at blue hour, with an unopened acquisition binder, keys, and cash reserve materials arranged neatly on a desk\nScene/background: upper-floor office at blue hour, calm skyline outside, no urgency in the room\nSubject: clean desk, unopened binder, keys, reserve cash box, neatly stacked folders\nAction: city lights brighten slowly while a soft breeze nudges a page edge\nCamera: slow dolly-out, 50mm, composed and patient\nLighting/mood: cool blue-hour ambient light with warm desk practicals, calm and selective\nColor palette: deep teal, charcoal, cool blue, warm amber, brushed brass\nStyle/format: filmic, natural grain, premium and disciplined\nTiming/beats: twelve-second calm reveal with no sharp transitions\nConstraints: no logos, no text, no people, no readable labels\nAvoid: jitter; flicker; readable text; messy desk clutter; surreal skyline",
+    "seconds": "12",
+    "size": "1920x1080"
+  }
+}

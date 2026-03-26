@@ -1,0 +1,19 @@
+{
+  "final": {
+    "id": "video_69c45657990881919d23b89c74d2316801da92bec4103637",
+    "completed_at": 1774475309,
+    "created_at": 1774474839,
+    "error": null,
+    "expires_at": 1774648109,
+    "model": "sora-2-pro",
+    "object": "video",
+    "progress": 100,
+    "prompt": "Use case: cinematic support footage for a narrated commercial real estate strategy video\nPrimary request: a commercial real estate underwriting desk late at night with loan documents, a rent roll, a marked-up site plan, and a calculator under disciplined task lighting\nScene/background: high-rise office after hours, distant city lights beyond the glass, quiet tension\nSubject: annotated underwriting papers, lender checklist, site plan, calculator, empty chair\nAction: paper corners lift subtly in the conditioned air while city lights shimmer softly in the background\nCamera: slow dolly-in, 35mm, steady and controlled\nLighting/mood: low-key tungsten practicals, serious, disciplined, restrained\nColor palette: charcoal, muted teal, soft coral, steel blue, warm amber\nStyle/format: filmic, natural grain, premium commercial real estate mood\nTiming/beats: single slow push over eight seconds\nConstraints: no logos, no text, no people, no readable numbers, realistic office geometry\nAvoid: jitter; flicker; warped paper; surreal motion; readable text",
+    "remixed_from_video_id": null,
+    "seconds": "8",
+    "size": "1920x1080",
+    "status": "completed",
+    "edited_from_video_id": null,
+    "extended_from_video_id": null
+  }
+}

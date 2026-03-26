@@ -1,6 +1,6 @@
 """
 LLM-Powered Script Writer for The Money Map
-Replaces template-based scripting with GPT-5.2 for unique,
+Replaces template-based scripting with GPT-5.4 for unique,
 engaging, longer scripts (~700 words / 4-5 minutes) for all 34 indicators.
 
 Falls back to enhanced_script_writer.py if API call fails.
@@ -10,7 +10,12 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config.settings import OPENAI_API_KEY, SCRIPT_LLM_MODEL, TARGET_WORD_COUNT
+from config.settings import (
+    OPENAI_API_KEY,
+    SCRIPT_LLM_MODEL,
+    SCRIPT_RESPONSE_FORMAT,
+    TARGET_WORD_COUNT,
+)
 
 # Few-shot example loaded from existing episode
 EXAMPLE_SCRIPT_PATH = os.path.join(
@@ -108,10 +113,11 @@ def _load_example_script():
         return None
 
 
-def _build_data_context(story_pkg):
+def _build_data_context(story_pkg, dossier):
     """Format the raw data into a clear context block for the LLM."""
     primary = story_pkg['primary']
     related = story_pkg.get('related', [])
+    dossier = dossier or {}
 
     lines = [
         "PRIMARY METRIC:",
@@ -136,16 +142,47 @@ def _build_data_context(story_pkg):
             f"     Latest Date: {r.get('latest_date', 'N/A')}",
         ])
 
+    lines.extend(
+        [
+            "",
+            "RESEARCH DOSSIER:",
+            f"  Summary: {dossier.get('summary', 'No dossier summary provided.')}",
+            f"  Angle: {dossier.get('angle', 'No angle provided.')}",
+            "  Novelty: "
+            f"{dossier.get('novelty', 'No novelty guidance provided.')}",
+            "  Watch-outs:",
+            *(f"    - {item}" for item in dossier.get("watch_outs", [])),
+            "  Source candidates:",
+            *(f"    - {item}" for item in dossier.get("source_list", [])),
+            "  Hook options:",
+            *(f"    - {item}" for item in dossier.get("hook_directions", [])),
+            "",
+            f"  Dossier confidence: {dossier.get('confidence', 'N/A')}",
+        ]
+    )
+
     return "\n".join(lines)
 
 
-def generate_llm_script(story_pkg):
-    """Generate a script using GPT-5.2 with structured output."""
+def _extract_json(response_text: str) -> dict:
+    """Extract JSON from response output that may include markdown wrappers."""
+    clean = response_text.strip()
+    if clean.startswith("```"):
+        clean = clean.replace("```json", "").replace("```", "").strip()
+    start = clean.find("{")
+    end = clean.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError("LLM response does not contain JSON payload.")
+    return json.loads(clean[start:end + 1])
+
+
+def generate_llm_script(story_pkg, dossier=None):
+    """Generate a script using the configured GPT-5 model with structured output."""
     from openai import OpenAI
 
     client = OpenAI(api_key=OPENAI_API_KEY)
 
-    data_context = _build_data_context(story_pkg)
+    data_context = _build_data_context(story_pkg, dossier or {})
     example_script = _load_example_script()
 
     system = SYSTEM_PROMPT.format(
@@ -166,16 +203,17 @@ def generate_llm_script(story_pkg):
         {"role": "user", "content": user_message},
     ]
 
-    response = client.chat.completions.create(
+    response = client.responses.create(
         model=SCRIPT_LLM_MODEL,
-        messages=messages,
-        temperature=0.8,
-        max_tokens=4096,
-        response_format={"type": "json_object"},
+        instructions=system,
+        input=messages,
+        max_output_tokens=4096,
+        text={"verbosity": "high"},
+        reasoning={"effort": "low"},
+        response_format=SCRIPT_RESPONSE_FORMAT,
     )
 
-    raw = response.choices[0].message.content
-    script_data = json.loads(raw)
+    script_data = _extract_json(response.output_text)
 
     # Validate required fields
     required_keys = ['title', 'script', 'sections', 'broll_prompts']
@@ -214,6 +252,7 @@ def generate_llm_script(story_pkg):
         "score": primary.get('score'),
         "tags": primary.get('tags', []),
     }
+    script_data["research_dossier"] = dossier or {}
 
     # Generate script_with_markers if not provided
     if 'script_with_markers' not in script_data:
@@ -250,9 +289,14 @@ def generate_llm_script(story_pkg):
 
 def generate_script(story_pkg):
     """Main entry point — tries LLM, falls back to template writer."""
+    return generate_script_with_research(story_pkg, dossier=None)
+
+
+def generate_script_with_research(story_pkg, dossier=None):
+    """Main entry point with optional research dossier support."""
     try:
-        print("  Using LLM script writer (GPT-5.2)...")
-        result = generate_llm_script(story_pkg)
+        print(f"  Using LLM script writer ({SCRIPT_LLM_MODEL})...")
+        result = generate_llm_script(story_pkg, dossier=dossier)
         print(f"  LLM script generated: {result['word_count']} words, "
               f"~{result['estimated_duration_sec']}s")
         return result

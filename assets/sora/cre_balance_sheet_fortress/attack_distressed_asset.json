@@ -1,0 +1,15 @@
+{
+  "download": {
+    "out": "/Users/gallagherpropertycompany/Desktop/the-money-map/assets/sora/cre_balance_sheet_fortress/attack_distressed_asset.mp4",
+    "variant": "video"
+  },
+  "dry_run": true,
+  "poll": true,
+  "request": {
+    "endpoint": "/v1/videos",
+    "model": "sora-2-pro",
+    "prompt": "Use case: cinematic support footage for the attack quadrant in a narrated CRE strategy video\nPrimary request: an older but valuable industrial property at sunrise, with vacant loading docks, weathered concrete, and fresh light hitting the facade as conditions finally turn\nScene/background: warehouse district at cold sunrise, thin ground fog, quiet street, opportunity emerging after stress\nSubject: aging warehouse, loading docks, gate, facade details, empty lot\nAction: the gate rolls open slightly while sunrise light moves across the building and fog drifts\nCamera: slow dolly-in, 35mm, confident and measured\nLighting/mood: pale gold sunrise, cool residual shadows, opportunistic but grounded\nColor palette: steel, pale gold, charcoal, muted teal, rust\nStyle/format: filmic, natural grain, high-end real estate mood\nTiming/beats: twelve-second forward move with rising optimism\nConstraints: no logos, no text, no people, realistic industrial details\nAvoid: jitter; dramatic explosions; readable signs; surreal architecture",
+    "seconds": "12",
+    "size": "1920x1080"
+  }
+}

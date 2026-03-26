@@ -9,7 +9,8 @@ import sys
 import subprocess
 from datetime import datetime
 
-sys.path.insert(0, '/home/user/workspace/the-money-map')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
 
 
 class YouTubeUploader:
@@ -41,7 +42,7 @@ class YouTubeUploader:
             'upload_date': datetime.now().strftime('%Y-%m-%d %H:%M'),
         }
         
-        pkg_path = '/home/user/workspace/the-money-map/data/upload_package.json'
+        pkg_path = os.path.join(BASE_DIR, 'data', 'upload_package.json')
         with open(pkg_path, 'w') as f:
             json.dump(package, f, indent=2)
         
@@ -70,9 +71,9 @@ Return the video URL once published.
 
 
 def prepare_for_upload():
-    script_path = '/home/user/workspace/the-money-map/data/latest_script.json'
-    video_path = '/home/user/workspace/the-money-map/output/pilot_episode.mp4'
-    thumb_path = '/home/user/workspace/the-money-map/output/thumbnail.png'
+    script_path = os.path.join(BASE_DIR, 'data', 'latest_script.json')
+    video_path = os.path.join(BASE_DIR, 'output', 'pilot_episode.mp4')
+    thumb_path = os.path.join(BASE_DIR, 'output', 'thumbnail.png')
     
     with open(script_path) as f:
         script_data = json.load(f)

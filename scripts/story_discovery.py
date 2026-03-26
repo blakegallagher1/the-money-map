@@ -4,18 +4,46 @@ Scores each potential story by viral potential, then picks the best one.
 """
 import json
 import os
+import ast
+import re
 from datetime import datetime
-from typing import List, Tuple
+from typing import List
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import FRED_SERIES
 
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _load_data(data_path: str) -> dict:
+    """Load JSON while tolerating accidental trailing commas."""
+    with open(data_path) as f:
+        raw_text = f.read()
+
+    try:
+        return json.loads(raw_text)
+    except json.JSONDecodeError:
+        try:
+            return ast.literal_eval(raw_text)
+        except (SyntaxError, ValueError, TypeError) as exc:
+            normalized = re.sub(r",(\s*[}\]])", r"\1", raw_text)
+            try:
+                return json.loads(normalized)
+            except json.JSONDecodeError as decode_error:
+                brace_deficit = normalized.count("{") - normalized.count("}")
+                if brace_deficit > 0:
+                    repaired = normalized + ("}" * brace_deficit)
+                    try:
+                        return json.loads(repaired)
+                    except json.JSONDecodeError:
+                        pass
+                raise ValueError(f"Invalid data file: {data_path}") from decode_error
+
 
 def analyze_data(data_path: str) -> dict:
     """Load fresh data and score every series for story potential."""
-    with open(data_path) as f:
-        raw = json.load(f)
+    raw = _load_data(data_path)
     
     stories = []
     data = raw["data"]
@@ -80,13 +108,22 @@ def analyze_data(data_path: str) -> dict:
         except:
             pass
         
-        # Apply recency penalty from episode history
+        # Apply recency and performance penalties from episode history
         try:
-            from scripts.episode_tracker import get_recency_penalty
+            from scripts.episode_tracker import get_metric_health_score, get_recency_penalty
             recency = get_recency_penalty(key)
             if recency < 0:
                 score += recency
                 tags.append(f"recency_penalty_{abs(recency)}")
+
+            health_score = get_metric_health_score(key)
+            health_bonus = int(round((health_score - 0.5) * 20))
+            if health_bonus != 0:
+                score += health_bonus
+            if health_score >= 0.65:
+                tags.append("historically_strong_retention")
+            elif health_score <= 0.35:
+                tags.append("historically_weak_retention")
         except Exception:
             pass  # Episode tracker not available, skip penalty
 
@@ -111,7 +148,13 @@ def analyze_data(data_path: str) -> dict:
 def find_related_series(primary_key: str, all_data: dict) -> List[dict]:
     """Find 2-3 related series that add context to the primary story."""
     relations = {
-        "median_home_price": ["mortgage_rate_30yr", "housing_starts", "home_ownership_rate", "case_shiller"],
+        "median_home_price": [
+            "mortgage_rate_30yr",
+            "housing_starts",
+            "fed_funds_rate",
+            "home_ownership_rate",
+            "case_shiller",
+        ],
         "mortgage_rate_30yr": ["median_home_price", "housing_starts", "fed_funds_rate"],
         "gas_price": ["cpi_energy", "cpi", "consumer_confidence"],
         "unemployment_rate": ["initial_claims", "job_openings", "labor_force_participation"],
@@ -145,8 +188,7 @@ def find_related_series(primary_key: str, all_data: dict) -> List[dict]:
 
 def build_story_package(data_path: str) -> dict:
     """Full pipeline: analyze data → pick best story → gather context → return package."""
-    with open(data_path) as f:
-        raw = json.load(f)
+    raw = _load_data(data_path)
     
     analysis = analyze_data(data_path)
     top = analysis["top_story"]
@@ -167,7 +209,8 @@ def build_story_package(data_path: str) -> dict:
 
 
 if __name__ == "__main__":
-    pkg = build_story_package("/home/user/workspace/the-money-map/data/latest_data.json")
+    data_path = os.path.join(BASE, 'data', 'latest_data.json')
+    pkg = build_story_package(data_path)
     print(f"\n🎯 TOP STORY: {pkg['primary']['name']}")
     print(f"   Latest: {pkg['primary']['latest_value']} {pkg['primary']['unit']}")
     print(f"   YoY Change: {pkg['primary']['yoy_pct']:+.1f}%")

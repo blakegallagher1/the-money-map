@@ -16,6 +16,9 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 |--------|------|-------------|
 | Data Ingestion | `scripts/data_ingestion.py` | Pulls 34 FRED economic indicators with YoY calculations |
 | Story Discovery | `scripts/story_discovery.py` | Scores each metric for viral potential, picks top story |
+| Research Dossier | `scripts/topic_research.py` | Builds topic-specific research context before script writing |
+| Deep Research | `scripts/openai_deep_research.py` | Runs web-backed strategic analysis with `o3-deep-research-2025-06-26` |
+| Quality Control | `scripts/quality_gate.py` | Enforces script and metadata quality checks before upload |
 | Script Writer V1 | `scripts/script_writer.py` | ~250 word scripts (~1:30 videos) |
 | Script Writer V2 | `scripts/enhanced_script_writer.py` | ~400-420 word scripts with section markers & b-roll cues |
 | Renderer V1 | `scripts/render_pilot.py` | Basic 5fps matplotlib → 30fps video |
@@ -41,7 +44,7 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 
 - **Data**: FRED API (Federal Reserve Economic Data) — 34 curated series
 - **Visualization**: matplotlib (1920x1080, 10fps render → 30fps output)
-- **Voiceover**: AI TTS (Gemini, "charon" voice — calm professional male)
+- **Voiceover**: AI TTS (OpenAI `gpt-4o-mini-tts`)
 - **B-Roll**: AI-generated cinematic video clips (15 clips across 5 episodes)
 - **Assembly**: ffmpeg (concatenation, voiceover mixing)
 - **Thumbnails**: matplotlib (1280x720, high-CTR design)
@@ -69,6 +72,12 @@ export FRED_API_KEY="your_key_here"
 ```bash
 # Full pipeline for one episode
 python scripts/orchestrator.py
+
+# Run with non-blocking quality checks (warn-only)
+python scripts/orchestrator.py --quality-mode warn
+
+# Run a deep-research planning pass and save report under output/research/
+python scripts/openai_deep_research.py --goal "Assess this repository and design a production-grade automated YouTube channel."
 
 # Build a narrated non-FRED episode from a JSON spec
 python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json

@@ -15,8 +15,17 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 LUMA_API_KEY = os.environ.get("LUMA_API_KEY", "")
 
 # --- LLM Script Writer ---
-SCRIPT_LLM_MODEL = "gpt-5.2"
+SCRIPT_LLM_MODEL = "gpt-5.4"
 TARGET_WORD_COUNT = 700  # Target ~4-5 minute videos
+SCRIPT_RESPONSE_FORMAT = {
+    "type": "json_object"
+}
+
+# --- Research & Planning ---
+RESEARCH_PROMPT_MODEL = "gpt-5.4"
+DEEP_RESEARCH_MODEL = "o3-deep-research-2025-06-26"
+DEEP_RESEARCH_MAX_TOOL_CALLS = 24
+RESEARCH_DOSSIER_MAX_WORDS = 700
 
 # --- B-Roll Settings (Luma Dream Machine) ---
 BROLL_ENABLED = True
@@ -36,6 +45,10 @@ YOUTUBE_TOKEN_PATH = os.path.join(
 )
 YOUTUBE_CATEGORY_ID = "27"  # Education
 AUTO_UPLOAD = os.environ.get("AUTO_UPLOAD", "false").lower() == "true"
+YOUTUBE_DEFAULT_PRIVACY = os.environ.get("YOUTUBE_DEFAULT_PRIVACY", "private")
+YOUTUBE_PUBLISH_OFFSET_DAYS = int(os.environ.get("YOUTUBE_PUBLISH_OFFSET_DAYS", "0"))
+YOUTUBE_PROCESSING_TIMEOUT_SECONDS = int(os.environ.get("YOUTUBE_PROCESSING_TIMEOUT_SECONDS", "900"))
+YOUTUBE_PROCESSING_POLL_SECONDS = int(os.environ.get("YOUTUBE_PROCESSING_POLL_SECONDS", "12"))
 
 # --- TTS Settings (OpenAI gpt-4o-mini-tts) ---
 TTS_MODEL = "gpt-4o-mini-tts"

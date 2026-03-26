@@ -5,7 +5,6 @@ Automated video upload via YouTube Data API v3 with OAuth 2.0.
 One-time browser auth for consent, then fully automated via refresh token.
 Supports upload, thumbnail, and scheduled publishing.
 """
-import json
 import os
 import sys
 import time
@@ -15,9 +14,9 @@ from config.settings import (
     YOUTUBE_CLIENT_SECRET_PATH,
     YOUTUBE_TOKEN_PATH,
     YOUTUBE_CATEGORY_ID,
+    YOUTUBE_PROCESSING_POLL_SECONDS,
+    YOUTUBE_PROCESSING_TIMEOUT_SECONDS,
 )
-
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # YouTube API scopes needed
 SCOPES = [
@@ -28,7 +27,87 @@ SCOPES = [
 # Retry settings for resumable uploads
 MAX_RETRIES = 3
 RETRY_BACKOFF = [2, 4, 8]
+SUCCESS_PROCESSING_STATES = {"success", "processed"}
+ERROR_PROCESSING_STATES = {"failed", "terminated", "rejected"}
 
+
+def _fetch_video_status(youtube, video_id: str) -> dict[str, str | None]:
+    """Fetch processing/visibility metadata for a YouTube upload."""
+    response = youtube.videos().list(
+        part="status,processingDetails",
+        id=video_id,
+    ).execute()
+
+    items = response.get("items") or []
+    if not items:
+        raise RuntimeError(f"Uploaded video not found in status check: {video_id}")
+
+    status = items[0].get("status") or {}
+    processing = items[0].get("processingDetails") or {}
+    upload_status = status.get("uploadStatus")
+    processing_status = processing.get("processingStatus")
+    return {
+        "uploadStatus": upload_status,
+        "processingStatus": processing_status,
+        "privacyStatus": status.get("privacyStatus"),
+        "publishAt": status.get("publishAt"),
+    }
+
+
+def _wait_for_processing(
+    youtube,
+    video_id: str,
+    *,
+    timeout_seconds: int = YOUTUBE_PROCESSING_TIMEOUT_SECONDS,
+    poll_interval: int = YOUTUBE_PROCESSING_POLL_SECONDS,
+) -> dict[str, str | None]:
+    """Wait until video processing reaches a terminal state."""
+    start = time.time()
+    last_printed = None
+    while time.time() - start < timeout_seconds:
+        status = _fetch_video_status(youtube, video_id)
+        key = f"{status['uploadStatus']}/{status['processingStatus']}"
+        if key != last_printed:
+            print(f"  Processing status: {key}")
+            last_printed = key
+
+        processing_status = (status.get("processingStatus") or "").lower()
+        upload_status = (status.get("uploadStatus") or "").lower()
+
+        if processing_status in SUCCESS_PROCESSING_STATES:
+            return status
+
+        if processing_status in ERROR_PROCESSING_STATES:
+            raise RuntimeError(f"Video processing failed (processingStatus={processing_status})")
+
+        if upload_status == "processed" and processing_status in (None, "", "completed"):
+            return status
+
+        time.sleep(poll_interval)
+
+    raise TimeoutError(
+        f"Video did not finish processing after {timeout_seconds}s: video_id={video_id}"
+    )
+
+
+def _set_thumbnail_if_ready(youtube, video_id: str, thumbnail_path: str | None):
+    """Upload thumbnail only after the upload is fully processed."""
+    if not (thumbnail_path and os.path.exists(thumbnail_path)):
+        return
+
+    from googleapiclient.http import MediaFileUpload
+
+    try:
+        print(f"  Setting thumbnail: {thumbnail_path}")
+        thumb_media = MediaFileUpload(thumbnail_path, mimetype="image/png")
+        youtube.thumbnails().set(
+            videoId=video_id,
+            media_body=thumb_media,
+        ).execute()
+        print("  Thumbnail set successfully")
+    except Exception as e:
+        print(f"  WARNING: Thumbnail upload failed: {e}")
+        return
 
 def _get_authenticated_service():
     """Build an authenticated YouTube API service using OAuth 2.0."""
@@ -85,8 +164,6 @@ def upload_video(video_path, title, description, tags, thumbnail_path=None,
     Returns:
         dict with video_id and video_url
     """
-    from googleapiclient.http import MediaFileUpload
-
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video not found: {video_path}")
 
@@ -115,6 +192,8 @@ def upload_video(video_path, title, description, tags, thumbnail_path=None,
     if publish_at:
         body["status"]["privacyStatus"] = "private"
         body["status"]["publishAt"] = publish_at
+
+    from googleapiclient.http import MediaFileUpload
 
     media = MediaFileUpload(
         video_path,
@@ -155,26 +234,34 @@ def upload_video(video_path, title, description, tags, thumbnail_path=None,
     video_url = f"https://www.youtube.com/watch?v={video_id}"
     print(f"  Upload complete: {video_url}")
 
-    # Set thumbnail if provided
-    if thumbnail_path and os.path.exists(thumbnail_path):
-        try:
-            print(f"  Setting thumbnail: {thumbnail_path}")
-            thumb_media = MediaFileUpload(thumbnail_path, mimetype="image/png")
-            youtube.thumbnails().set(
-                videoId=video_id,
-                media_body=thumb_media,
-            ).execute()
-            print("  Thumbnail set successfully")
-        except Exception as e:
-            print(f"  WARNING: Thumbnail upload failed: {e}")
+    # Ensure the media pipeline has processed the video before downstream steps.
+    processing_status = _wait_for_processing(
+        youtube,
+        video_id,
+        timeout_seconds=YOUTUBE_PROCESSING_TIMEOUT_SECONDS,
+        poll_interval=YOUTUBE_PROCESSING_POLL_SECONDS,
+    )
 
-    return {
+    _set_thumbnail_if_ready(youtube, video_id, thumbnail_path)
+
+    status_payload = {
         "video_id": video_id,
         "video_url": video_url,
         "title": title,
         "privacy": privacy,
         "publish_at": publish_at,
+        "upload_status": processing_status.get("uploadStatus"),
+        "processing_status": processing_status.get("processingStatus"),
     }
+
+    status_payload["status_message"] = "processing-complete"
+
+    status_payload["status_details"] = (
+        f"uploadStatus={processing_status.get('uploadStatus')}, "
+        f"processingStatus={processing_status.get('processingStatus')}, "
+        f"publishAt={processing_status.get('publishAt')}"
+    )
+    return status_payload
 
 
 def schedule_publish(video_id, publish_at):
@@ -186,7 +273,7 @@ def schedule_publish(video_id, publish_at):
     """
     youtube = _get_authenticated_service()
 
-    youtube.videos().update(
+    response = youtube.videos().update(
         part="status",
         body={
             "id": video_id,
@@ -198,6 +285,7 @@ def schedule_publish(video_id, publish_at):
     ).execute()
 
     print(f"  Video {video_id} scheduled for {publish_at}")
+    return response
 
 
 if __name__ == "__main__":

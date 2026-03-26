@@ -1,0 +1,19 @@
+{
+  "final": {
+    "id": "video_69c45a565c488190a998852a0a228b69038dd768ea28b442",
+    "completed_at": 1774476338,
+    "created_at": 1774475862,
+    "error": null,
+    "expires_at": 1774649138,
+    "model": "sora-2-pro",
+    "object": "video",
+    "progress": 100,
+    "prompt": "Use case: cinematic support footage for the expose quadrant in a narrated CRE strategy video\nPrimary request: a partially built urban high-rise exposed to sudden storm pressure, with dark clouds rolling in over the structure\nScene/background: downtown jobsite, late afternoon, storm front approaching fast\nSubject: exposed steel frame, tower crane, safety mesh, unfinished upper floors\nAction: wind hits the safety mesh, crane cable sways, clouds race behind the frame\nCamera: subtle crane rise, 28mm, controlled and tense\nLighting/mood: pre-storm instability, sharp contrast, dramatic but realistic\nColor palette: slate, gunmetal, warning amber, bruised blue, muted red\nStyle/format: filmic, natural grain, grounded tension\nTiming/beats: eight-second controlled lift with mounting pressure\nConstraints: no logos, no text, no people, realistic weather and structure\nAvoid: jitter; impossible crane motion; readable signs; fantasy skyline",
+    "remixed_from_video_id": null,
+    "seconds": "8",
+    "size": "1920x1080",
+    "status": "completed",
+    "edited_from_video_id": null,
+    "extended_from_video_id": null
+  }
+}
