@@ -37,15 +37,12 @@ def log(msg):
 
 def step_data():
     log("STEP 1: Fetching fresh economic data from FRED...")
-    from scripts.data_ingestion import FREDClient
-    client = FREDClient()
-    result = client.fetch_all()
+    from scripts.data_ingestion import fetch_fresh_data
 
     out_path = os.path.join(DATA_DIR, 'latest_data.json')
-    with open(out_path, 'w') as f:
-        json.dump(result, f, indent=2, default=str)
+    result = fetch_fresh_data(output_path=out_path)
 
-    log(f"  Fetched {len(result['data'])} indicators")
+    log(f"  Fetched {result['series_count']} indicators")
     return result
 
 

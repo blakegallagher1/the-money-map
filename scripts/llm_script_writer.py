@@ -204,7 +204,7 @@ def generate_llm_script(story_pkg, dossier=None):
         model=SCRIPT_LLM_MODEL,
         messages=messages,
         temperature=0.8,
-        max_tokens=4096,
+        max_completion_tokens=4096,
         response_format={"type": "json_object"},
     )
 
