@@ -26,6 +26,16 @@ THUMB_HEADLINES = {
     "national_debt": "$37 TRILLION\nIN DEBT", 
     "gas_price": "GAS IS\nCHEAP AGAIN",
     "gdp_growth": "RECESSION\nINCOMING?",
+    "credit_card_delinquency": "DEBT CRISIS\nIS HERE",
+    "unemployment_rate": "JOBS ARE\nVANISHING",
+    "cpi": "INFLATION\nISN'T DONE",
+    "housing_starts": "BUILDERS\nJUST STOPPED",
+    "fed_funds_rate": "THE FED\nJUST MOVED",
+    "consumer_confidence": "CONFIDENCE\nCOLLAPSED",
+    "case_shiller": "HOME PRICES\nARE LYING",
+    "rent_cpi": "RENT IS\nOUT OF CONTROL",
+    "treasury_10yr": "BONDS ARE\nSCREAMING",
+    "cre_loan_delinquency": "CRE LOANS\nARE BREAKING",
 }
 
 # Color schemes per topic (primary accent, secondary, mood)
@@ -35,6 +45,16 @@ THUMB_SCHEMES = {
     "national_debt": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
     "gas_price": {"accent": "#FFB84D", "glow": "#FCD34D", "mood": "caution"},
     "gdp_growth": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
+    "credit_card_delinquency": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
+    "unemployment_rate": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
+    "cpi": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
+    "housing_starts": {"accent": "#FFB84D", "glow": "#FCD34D", "mood": "caution"},
+    "fed_funds_rate": {"accent": "#4A9EFF", "glow": "#60B0FF", "mood": "neutral"},
+    "consumer_confidence": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
+    "case_shiller": {"accent": "#FFB84D", "glow": "#FCD34D", "mood": "caution"},
+    "rent_cpi": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
+    "treasury_10yr": {"accent": "#A855F7", "glow": "#C084FC", "mood": "caution"},
+    "cre_loan_delinquency": {"accent": "#FF4444", "glow": "#FF6B6B", "mood": "danger"},
 }
 
 
