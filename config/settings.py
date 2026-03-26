@@ -15,8 +15,13 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 LUMA_API_KEY = os.environ.get("LUMA_API_KEY", "")
 
 # --- LLM Script Writer ---
-SCRIPT_LLM_MODEL = "gpt-5.2"
+SCRIPT_LLM_MODEL = "gpt-5.4"
 TARGET_WORD_COUNT = 700  # Target ~4-5 minute videos
+
+# --- Research & Planning ---
+RESEARCH_PROMPT_MODEL = "gpt-5.4"
+DEEP_RESEARCH_MODEL = "o3-deep-research"
+DEEP_RESEARCH_MAX_TOOL_CALLS = 24
 
 # --- B-Roll Settings (Luma Dream Machine) ---
 BROLL_ENABLED = True

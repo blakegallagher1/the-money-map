@@ -1,6 +1,6 @@
 """
 LLM-Powered Script Writer for The Money Map
-Replaces template-based scripting with GPT-5.2 for unique,
+Replaces template-based scripting with GPT-5.4 for unique,
 engaging, longer scripts (~700 words / 4-5 minutes) for all 34 indicators.
 
 Falls back to enhanced_script_writer.py if API call fails.
@@ -140,7 +140,7 @@ def _build_data_context(story_pkg):
 
 
 def generate_llm_script(story_pkg):
-    """Generate a script using GPT-5.2 with structured output."""
+    """Generate a script using the configured GPT-5 model with structured output."""
     from openai import OpenAI
 
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -251,7 +251,7 @@ def generate_llm_script(story_pkg):
 def generate_script(story_pkg):
     """Main entry point — tries LLM, falls back to template writer."""
     try:
-        print("  Using LLM script writer (GPT-5.2)...")
+        print(f"  Using LLM script writer ({SCRIPT_LLM_MODEL})...")
         result = generate_llm_script(story_pkg)
         print(f"  LLM script generated: {result['word_count']} words, "
               f"~{result['estimated_duration_sec']}s")
