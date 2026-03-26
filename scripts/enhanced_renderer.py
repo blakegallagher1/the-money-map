@@ -749,7 +749,9 @@ def render_episode(ep_num, script_path, output_dir):
     
     print(f"Title: {script_data['title']}")
     
-    base_dir = os.path.join(output_dir, f"ep{ep_num}_v2_render")
+    ep_id = str(ep_num)
+    ep_prefix = f"ep{ep_id}" if ep_id.isdigit() else ep_id
+    base_dir = os.path.join(output_dir, f"{ep_prefix}_v2_render")
     os.makedirs(base_dir, exist_ok=True)
     
     # Calculate dynamic scene durations based on script word counts
@@ -777,8 +779,8 @@ def render_episode(ep_num, script_path, output_dir):
     ], capture_output=True, text=True, timeout=120, check=True)
     
     # Mix with voiceover
-    vo_path = os.path.join(BASE, f'data/ep{ep_num}_v2/voiceover.wav')
-    final_path = os.path.join(output_dir, f"ep{ep_num}_v2_final.mp4")
+    vo_path = os.path.join(BASE, f'data/{ep_prefix}_v2/voiceover.wav')
+    final_path = os.path.join(output_dir, f"{ep_prefix}_v2_final.mp4")
     
     if os.path.exists(vo_path):
         subprocess.run([

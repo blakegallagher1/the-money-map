@@ -152,8 +152,7 @@ def step_render(script_data=None):
 
         script_path = os.path.join(DATA_DIR, 'latest_script.json')
         ep_num = 'latest'
-        render_episode(ep_num, script_path, OUTPUT_DIR)
-        video_path = os.path.join(OUTPUT_DIR, f'ep{ep_num}_v2_final.mp4')
+        video_path = render_episode(ep_num, script_path, OUTPUT_DIR)
     else:
         # Legacy render
         import subprocess
@@ -361,7 +360,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
 
         # Step 5.5: Final assembly
         if start_idx <= 8:
-            dataviz_path = results.get('render', os.path.join(OUTPUT_DIR, 'eplatest_v2_final.mp4'))
+            dataviz_path = results.get('render', os.path.join(OUTPUT_DIR, 'latest_v2_final.mp4'))
             broll_paths = results.get('broll', {})
             audio_path = results.get('audio', vo_path)
             results['final_video'] = step_assemble(
