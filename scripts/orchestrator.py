@@ -190,6 +190,46 @@ def step_thumbnail(script_data=None):
     return thumb_path
 
 
+def step_quality_gate(script_data, results):
+    log("STEP 7: Running quality gate...")
+    from scripts.quality_gate import quality_gate_report_path, run_quality_gate
+    from scripts.episode_tracker import load_history
+
+    artifact_paths = {
+        "voiceover_path": results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.mp3')),
+        "thumbnail_path": results.get('thumbnail', os.path.join(OUTPUT_DIR, 'thumbnail.png')),
+        "final_video_path": results.get(
+            'final_video', os.path.join(OUTPUT_DIR, 'latest_final.mp4')
+        ),
+        "script_json_path": os.path.join(DATA_DIR, 'latest_script.json'),
+    }
+
+    previous_entries = load_history()
+    previous_titles = [
+        entry.get('title', '')
+        for entry in previous_entries
+        if isinstance(entry, dict) and entry.get('title')
+    ]
+
+    result = run_quality_gate(
+        script_data,
+        artifact_paths,
+        previous_titles=previous_titles,
+    )
+
+    issues = result.get('issues', [])
+    for issue in issues:
+        log(f"  issue[{issue.get('severity', 'n/a')}]: {issue.get('code')}: {issue.get('message')}")
+
+    report_path = quality_gate_report_path(result, DATA_DIR)
+    log(f"  Quality gate report written: {report_path}")
+
+    if result.get("status") != "pass":
+        raise RuntimeError(f"Quality gate failed with issues: {issues}")
+
+    return result
+
+
 def step_upload(script_data, video_path, thumbnail_path):
     log("STEP 7: Uploading to YouTube...")
     from scripts.youtube_api_uploader import upload_video
@@ -250,7 +290,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
     log("=" * 60)
 
     steps = ['data', 'story', 'script', 'broll', 'voiceover', 'music',
-             'render', 'assemble', 'thumbnail', 'upload', 'record']
+             'render', 'assemble', 'thumbnail', 'quality_gate', 'upload', 'record']
     start_idx = steps.index(start_step) if start_step in steps else 0
 
     results = {}
@@ -317,9 +357,13 @@ def run_full_pipeline(start_step='data', script_mode='llm',
         if start_idx <= 8:
             results['thumbnail'] = step_thumbnail(script_data)
 
-        # Step 7: Upload
-        video_url = None
+        # Step 7: Quality gate
         if start_idx <= 9:
+            results['quality_gate'] = step_quality_gate(script_data, results)
+
+        # Step 8: Upload
+        video_url = None
+        if start_idx <= 10:
             final_video = results.get('final_video', os.path.join(OUTPUT_DIR, 'latest_final.mp4'))
             thumb_path = results.get('thumbnail', os.path.join(OUTPUT_DIR, 'thumbnail.png'))
 
@@ -335,7 +379,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
                 step_upload_prep(script_data)
 
         # Step 8: Record in episode history
-        if start_idx <= 10:
+        if start_idx <= 11:
             step_record_episode(script_data, video_url=video_url)
 
         log("=" * 60)
