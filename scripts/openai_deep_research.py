@@ -48,6 +48,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--goal", default=DEFAULT_GOAL, help="Research objective.")
     parser.add_argument(
+        "--response-id",
+        help="Resume or poll an existing response ID instead of submitting a new job.",
+    )
+    parser.add_argument(
         "--context-file",
         action="append",
         default=[],
@@ -334,24 +338,35 @@ def main() -> None:
     """Run the prompt rewrite, deep research job, and artifact persistence flow."""
     args = parse_args()
     client = OpenAI()
-    repo_context = build_repo_context(args.context_file)
-    prompt_text = (
-        build_seed_prompt(args.goal, repo_context)
-        if args.skip_rewrite
-        else rewrite_prompt(client, args.goal, repo_context, args.prompt_model)
-    )
-
-    response, tool_type = submit_research_job(
-        client=client,
-        research_model=args.research_model,
-        prompt_text=prompt_text,
-        max_tool_calls=args.max_tool_calls,
-    )
-    print(f"[research] response_id={response.id}")
+    if args.response_id:
+        prompt_text = (
+            f"Resumed existing response `{args.response_id}`. "
+            "Original prompt text was not regenerated in this invocation."
+        )
+        tool_type = "resumed-response"
+        prompt_model = "n/a (resume mode)"
+        response_id = args.response_id
+        print(f"[research] resuming response_id={response_id}")
+    else:
+        repo_context = build_repo_context(args.context_file)
+        prompt_text = (
+            build_seed_prompt(args.goal, repo_context)
+            if args.skip_rewrite
+            else rewrite_prompt(client, args.goal, repo_context, args.prompt_model)
+        )
+        response, tool_type = submit_research_job(
+            client=client,
+            research_model=args.research_model,
+            prompt_text=prompt_text,
+            max_tool_calls=args.max_tool_calls,
+        )
+        prompt_model = args.prompt_model
+        response_id = response.id
+        print(f"[research] response_id={response_id}")
 
     final_response = wait_for_response(
         client=client,
-        response_id=response.id,
+        response_id=response_id,
         poll_interval=args.poll_interval,
         max_wait_seconds=args.max_wait_seconds,
     )
@@ -366,8 +381,8 @@ def main() -> None:
         goal=args.goal,
         prompt_text=prompt_text,
         response_payload=response_payload,
-        research_model=args.research_model,
-        prompt_model=args.prompt_model,
+        research_model=getattr(final_response, "model", None) or args.research_model,
+        prompt_model=prompt_model,
         tool_type=tool_type,
     )
     markdown_path, json_path = save_artifacts(

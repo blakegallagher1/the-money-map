@@ -1,8 +1,11 @@
 """Tests for the OpenAI deep research runner helpers."""
 
+import sys
+
 from scripts.openai_deep_research import (
     build_seed_prompt,
     extract_citations,
+    parse_args,
     render_markdown_report,
     slugify,
 )
@@ -19,6 +22,17 @@ def test_build_seed_prompt_includes_goal_and_context() -> None:
     assert "Automate the channel." in prompt
     assert "FILE: README.md" in prompt
     assert "Top 5 Repo Changes" in prompt
+
+
+def test_parse_args_accepts_response_id(monkeypatch) -> None:
+    """Resume mode should accept an existing response ID from the CLI."""
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["openai_deep_research.py", "--response-id", "resp_123"],
+    )
+    args = parse_args()
+    assert args.response_id == "resp_123"
 
 
 def test_extract_citations_deduplicates_urls() -> None:
