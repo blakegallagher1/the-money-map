@@ -1,18 +1,17 @@
-"""Generate Sora clips for a narrated episode from a JSON shot plan."""
+"""Generate Sora clips for a narrated episode from a JSON shot plan.
+
+Uses the OpenAI Videos SDK directly — no external CLI dependency.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import subprocess
-import sys
 import time
 from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SORA_CLI = Path("/Users/gallagherpropertycompany/.codex/skills/sora/scripts/sora.py")
 ASSETS_DIR = REPO_ROOT / "assets" / "sora"
 
 
@@ -34,73 +33,6 @@ def shot_paths(slug: str, shot_id: str) -> tuple[Path, Path]:
     """Return the target video and metadata paths for a shot."""
     out_dir = ASSETS_DIR / slug
     return out_dir / f"{shot_id}.mp4", out_dir / f"{shot_id}.json"
-
-
-def build_sora_command(
-    shot: dict[str, Any],
-    *,
-    model: str,
-    size: str,
-    timeout: int,
-    poll_interval: int,
-    video_path: Path,
-    json_path: Path,
-    force: bool,
-    dry_run: bool,
-) -> list[str]:
-    """Build a deterministic Sora CLI command for a single shot."""
-    command = [
-        "uv",
-        "run",
-        "--with",
-        "openai",
-        "python",
-        str(SORA_CLI),
-        "create-and-poll",
-        "--model",
-        str(shot.get("model", model)),
-        "--size",
-        str(shot.get("size", size)),
-        "--seconds",
-        str(shot.get("seconds", "8")),
-        "--prompt",
-        shot["prompt"],
-        "--download",
-        "--variant",
-        "video",
-        "--out",
-        str(video_path),
-        "--json-out",
-        str(json_path),
-        "--timeout",
-        str(shot.get("timeout", timeout)),
-        "--poll-interval",
-        str(shot.get("poll_interval", poll_interval)),
-    ]
-    for option in [
-        "use_case",
-        "scene",
-        "subject",
-        "action",
-        "camera",
-        "style",
-        "lighting",
-        "palette",
-        "audio",
-        "dialogue",
-        "text",
-        "timing",
-        "constraints",
-        "negative",
-    ]:
-        value = shot.get(option)
-        if value:
-            command.extend([f"--{option.replace('_', '-')}", str(value)])
-    if force:
-        command.append("--force")
-    if dry_run:
-        command.append("--dry-run")
-    return command
 
 
 def build_augmented_prompt(shot: dict[str, Any]) -> str:
@@ -205,29 +137,22 @@ def generate_shot(
         print(f"Skipping {shot['id']} (already exists)")
         return video_path, json_path
 
-    if not dry_run:
-        return generate_shot_via_sdk(
-            plan,
-            shot,
-            video_path=video_path,
-            json_path=json_path,
-        )
+    if dry_run:
+        prompt = build_augmented_prompt(shot)
+        model = str(shot.get("model", plan.get("model", "sora-2-pro")))
+        size = str(shot.get("size", plan.get("size", "1920x1080")))
+        seconds = str(shot.get("seconds", "8"))
+        print(f"  [dry-run] Would generate: model={model} size={size} seconds={seconds}")
+        print(f"  [dry-run] Prompt: {prompt[:120]}...")
+        print(f"  [dry-run] Output: {video_path}")
+        return video_path, json_path
 
-    command = build_sora_command(
+    return generate_shot_via_sdk(
+        plan,
         shot,
-        model=plan.get("model", "sora-2-pro"),
-        size=plan.get("size", "1920x1080"),
-        timeout=int(plan.get("timeout", 1800)),
-        poll_interval=int(plan.get("poll_interval", 10)),
         video_path=video_path,
         json_path=json_path,
-        force=force,
-        dry_run=dry_run,
     )
-    env = dict(os.environ)
-    env.setdefault("UV_CACHE_DIR", "/tmp/uv-cache")
-    subprocess.run(command, check=True, env=env)
-    return video_path, json_path
 
 
 def main() -> None:

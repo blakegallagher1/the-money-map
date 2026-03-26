@@ -15,7 +15,7 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 LUMA_API_KEY = os.environ.get("LUMA_API_KEY", "")
 
 # --- LLM Script Writer ---
-SCRIPT_LLM_MODEL = "gpt-5.2"
+SCRIPT_LLM_MODEL = "gpt-5.4"
 TARGET_WORD_COUNT = 700  # Target ~4-5 minute videos
 RESEARCH_PROMPT_MODEL = "gpt-5.4"
 RESEARCH_DOSSIER_MAX_WORDS = 700

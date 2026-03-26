@@ -1,16 +1,19 @@
-"""Generate still-image visuals for a narrated episode from a JSON plan."""
+"""Generate still-image visuals for a narrated episode from a JSON plan.
+
+Uses the OpenAI Images API directly via the Python SDK — no external CLI dependency.
+"""
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
-import os
-import subprocess
 from pathlib import Path
 from typing import Any
 
+from openai import OpenAI
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
-IMAGE_CLI = Path("/Users/gallagherpropertycompany/.codex/skills/imagegen/scripts/image_gen.py")
 OUTPUT_DIR = REPO_ROOT / "output" / "imagegen"
 
 
@@ -33,87 +36,45 @@ def image_path(slug: str, image_id: str, output_format: str) -> Path:
     return OUTPUT_DIR / slug / f"{image_id}.{output_format}"
 
 
-def build_image_command(
+def generate_image(
+    plan: dict[str, Any],
     image: dict[str, Any],
     *,
-    model: str,
-    size: str,
-    quality: str,
-    output_format: str,
-    out_path: Path,
     force: bool,
     dry_run: bool,
-) -> list[str]:
-    """Build a deterministic image generation command for one plan entry."""
-    command = [
-        "uv",
-        "run",
-        "--with",
-        "openai",
-        "--with",
-        "pillow",
-        "--python",
-        "3.12",
-        "python",
-        str(IMAGE_CLI),
-        "generate",
-        "--model",
-        str(image.get("model", model)),
-        "--prompt",
-        image["prompt"],
-        "--size",
-        str(image.get("size", size)),
-        "--quality",
-        str(image.get("quality", quality)),
-        "--output-format",
-        str(image.get("output_format", output_format)),
-        "--out",
-        str(out_path),
-    ]
-    for option in [
-        "use_case",
-        "scene",
-        "subject",
-        "style",
-        "composition",
-        "lighting",
-        "palette",
-        "materials",
-        "text",
-        "constraints",
-        "negative",
-    ]:
-        value = image.get(option)
-        if value:
-            command.extend([f"--{option.replace('_', '-')}", str(value)])
-    if force:
-        command.append("--force")
-    if dry_run:
-        command.append("--dry-run")
-    return command
-
-
-def generate_image(plan: dict[str, Any], image: dict[str, Any], *, force: bool, dry_run: bool) -> Path:
-    """Generate one image or skip if the target already exists."""
+) -> Path:
+    """Generate one image via the OpenAI SDK, or skip if it already exists."""
     output_format = str(image.get("output_format", plan.get("output_format", "png")))
     out_path = image_path(plan["slug"], image["id"], output_format)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+
     if out_path.exists() and not force and not dry_run:
         print(f"Skipping {image['id']} (already exists)")
         return out_path
 
-    command = build_image_command(
-        image,
-        model=str(plan.get("model", "gpt-image-1.5")),
-        size=str(plan.get("size", "1536x1024")),
-        quality=str(plan.get("quality", "high")),
-        output_format=output_format,
-        out_path=out_path,
-        force=force,
-        dry_run=dry_run,
+    model = str(image.get("model", plan.get("model", "gpt-image-1.5")))
+    size = str(image.get("size", plan.get("size", "1536x1024")))
+    quality = str(image.get("quality", plan.get("quality", "high")))
+    prompt = image["prompt"]
+
+    if dry_run:
+        print(f"  [dry-run] Would generate: model={model} size={size} quality={quality}")
+        print(f"  [dry-run] Prompt: {prompt[:120]}...")
+        print(f"  [dry-run] Output: {out_path}")
+        return out_path
+
+    client = OpenAI()
+    response = client.images.generate(
+        model=model,
+        prompt=prompt,
+        size=size,
+        quality=quality,
+        response_format="b64_json",
+        n=1,
     )
-    env = dict(os.environ)
-    subprocess.run(command, check=True, env=env)
+
+    image_data = base64.b64decode(response.data[0].b64_json)
+    out_path.write_bytes(image_data)
     return out_path
 
 
