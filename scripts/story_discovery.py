@@ -8,7 +8,8 @@ from datetime import datetime
 from typing import List, Tuple
 
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import FRED_SERIES
 
 
@@ -167,7 +168,8 @@ def build_story_package(data_path: str) -> dict:
 
 
 if __name__ == "__main__":
-    pkg = build_story_package("/home/user/workspace/the-money-map/data/latest_data.json")
+    data_path = os.path.join(PROJECT_ROOT, "data", "latest_data.json")
+    pkg = build_story_package(data_path)
     print(f"\n🎯 TOP STORY: {pkg['primary']['name']}")
     print(f"   Latest: {pkg['primary']['latest_value']} {pkg['primary']['unit']}")
     print(f"   YoY Change: {pkg['primary']['yoy_pct']:+.1f}%")

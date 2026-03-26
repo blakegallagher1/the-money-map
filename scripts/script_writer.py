@@ -6,6 +6,8 @@ import json
 import os
 from datetime import datetime
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def format_number(value: float, unit: str) -> str:
     """Format numbers for spoken narration."""
@@ -182,13 +184,15 @@ def generate_script(story_package: dict) -> dict:
 if __name__ == "__main__":
     from story_discovery import build_story_package
     
-    pkg = build_story_package("/home/user/workspace/the-money-map/data/latest_data.json")
+    data_path = os.path.join(PROJECT_ROOT, "data", "latest_data.json")
+    pkg = build_story_package(data_path)
     script = generate_script(pkg)
     
     print(f"📺 TITLE: {script['title']}")
     print(f"⏱  Duration: ~{script['estimated_duration_sec']}s ({script['word_count']} words)")
     print(script['script'])
     
-    with open("/home/user/workspace/the-money-map/data/latest_script.json", "w") as f:
+    output_script = os.path.join(PROJECT_ROOT, "data", "latest_script.json")
+    with open(output_script, "w") as f:
         json.dump(script, f, indent=2)
     print(f"\nSaved to data/latest_script.json")

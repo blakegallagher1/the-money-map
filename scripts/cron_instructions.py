@@ -13,7 +13,7 @@ Run the full weekly episode pipeline:
 
 ## Step 1: Fetch Fresh Data
 ```
-cd /home/user/workspace/the-money-map
+cd "$(cd "$(dirname "$0")/.." && pwd)"
 python -c "
 from scripts.data_ingestion import FREDClient
 import json

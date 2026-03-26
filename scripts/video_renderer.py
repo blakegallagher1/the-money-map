@@ -468,7 +468,7 @@ if __name__ == "__main__":
     from scripts.story_discovery import build_story_package
     from scripts.script_writer import generate_script
     
-    data_path = "/home/user/workspace/the-money-map/data/latest_data.json"
+    data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "latest_data.json")
     pkg = build_story_package(data_path)
     script = generate_script(pkg)
     
@@ -476,7 +476,7 @@ if __name__ == "__main__":
     client = FREDClient()
     series = client.get_series(script['primary_metric']['series_id'])
     
-    output_dir = "/home/user/workspace/the-money-map/output/episode_test"
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "output", "episode_test")
     scenes = render_full_episode(script, series['observations'], output_dir)
     
     for s in scenes:

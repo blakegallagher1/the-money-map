@@ -10,7 +10,8 @@ import numpy as np
 import os
 import sys
 
-sys.path.insert(0, '/home/user/workspace/the-money-map')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import COLORS
 
 
@@ -84,9 +85,9 @@ def generate_thumbnail(script_data, output_path):
 
 if __name__ == "__main__":
     import json
-    with open('/home/user/workspace/the-money-map/data/latest_script.json') as f:
+    with open(os.path.join(PROJECT_ROOT, 'data', 'latest_script.json')) as f:
         script_data = json.load(f)
-    out = generate_thumbnail(script_data, '/home/user/workspace/the-money-map/output/thumbnail.png')
+    out = generate_thumbnail(script_data, os.path.join(PROJECT_ROOT, 'output', 'thumbnail.png'))
     print(f"Thumbnail saved: {out}")
     sz = os.path.getsize(out)
     print(f"Size: {sz/1024:.0f} KB")

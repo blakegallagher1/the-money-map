@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import FRED_API_KEY, FRED_SERIES
 
 
@@ -141,7 +142,8 @@ def fetch_fresh_data(output_path: str = None) -> dict:
 
 
 if __name__ == "__main__":
-    data = fetch_fresh_data("/home/user/workspace/the-money-map/data/latest_data.json")
+    data_path = os.path.join(PROJECT_ROOT, "data", "latest_data.json")
+    data = fetch_fresh_data(data_path)
     print(f"\nFetched {data['series_count']} indicators.")
     movers = []
     for key, d in data["data"].items():

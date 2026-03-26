@@ -13,7 +13,8 @@ import subprocess
 from datetime import datetime
 import sys
 
-sys.path.insert(0, '/home/user/workspace/the-money-map')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import COLORS
 from scripts.data_ingestion import FREDClient
 from scripts.story_discovery import build_story_package, find_related_series
@@ -28,17 +29,17 @@ plt.rcParams.update({
     'grid.linestyle': '--', 'axes.spines.top': False, 'axes.spines.right': False,
 })
 
-pkg = build_story_package('/home/user/workspace/the-money-map/data/latest_data.json')
+pkg = build_story_package(os.path.join(PROJECT_ROOT, 'data', 'latest_data.json'))
 script_data = generate_script(pkg)
 primary = script_data['primary_metric']
 client = FREDClient()
 series = client.get_series(primary['series_id'])
 observations = series['observations']
-with open('/home/user/workspace/the-money-map/data/latest_data.json') as f:
+with open(os.path.join(PROJECT_ROOT, 'data', 'latest_data.json')) as f:
     all_data = json.load(f)['data']
 related = find_related_series(primary['key'], all_data)
 
-base = '/home/user/workspace/the-money-map/output/pilot'
+base = os.path.join(PROJECT_ROOT, 'output', 'pilot')
 os.makedirs(base, exist_ok=True)
 RENDER_FPS = 5
 
@@ -248,8 +249,8 @@ subprocess.run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i",
     os.path.join(base, "concat.txt"), "-c", "copy", silent],
     capture_output=True, text=True, timeout=120, check=True, cwd=base)
 
-vo = '/home/user/workspace/the-money-map/output/voiceover.mp3'
-final = '/home/user/workspace/the-money-map/output/pilot_episode.mp4'
+vo = os.path.join(PROJECT_ROOT, 'output', 'voiceover.mp3')
+final = os.path.join(PROJECT_ROOT, 'output', 'pilot_episode.mp4')
 
 if os.path.exists(vo):
     subprocess.run(["ffmpeg", "-y", "-i", silent, "-i", vo,

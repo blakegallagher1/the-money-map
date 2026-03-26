@@ -19,7 +19,8 @@ import json
 import sys
 import os
 
-sys.path.insert(0, '/home/user/workspace/the-money-map')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import FRED_SERIES
 
 
@@ -304,7 +305,8 @@ def generate_enhanced_script(story_pkg):
 
 if __name__ == "__main__":
     from scripts.story_discovery import build_story_package
-    pkg = build_story_package("/home/user/workspace/the-money-map/data/latest_data.json")
+    data_path = os.path.join(PROJECT_ROOT, "data", "latest_data.json")
+    pkg = build_story_package(data_path)
     result = generate_enhanced_script(pkg)
     print(f"Title: {result['title']}")
     print(f"Words: {result['word_count']}")

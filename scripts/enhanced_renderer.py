@@ -25,9 +25,12 @@ import shutil
 from datetime import datetime
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import COLORS, FRED_SERIES
 from scripts.data_ingestion import FREDClient
+
+BASE = PROJECT_ROOT
 
 # Global render settings
 RENDER_FPS = 30  # Native 30fps rendering
@@ -465,7 +468,7 @@ def render_scene_context(script_data, base_dir, duration_sec=40):
     accent = COLORS['negative'] if is_neg else COLORS['accent_teal']
     
     # Load related data
-    with open('/home/user/workspace/the-money-map/data/latest_data.json') as f:
+    with open(os.path.join(PROJECT_ROOT, 'data', 'latest_data.json')) as f:
         all_data = json.load(f)['data']
     
     from scripts.story_discovery import find_related_series
@@ -807,7 +810,7 @@ def render_episode(ep_num, script_path, output_dir):
 if __name__ == "__main__":
     import sys
     ep = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-    script_path = f'/home/user/workspace/the-money-map/data/ep{ep}_v2/script.json'
-    output_dir = '/home/user/workspace/the-money-map/output'
+    script_path = os.path.join(PROJECT_ROOT, 'data', f'ep{ep}_v2', 'script.json')
+    output_dir = os.path.join(PROJECT_ROOT, 'output')
     os.makedirs(output_dir, exist_ok=True)
     render_episode(ep, script_path, output_dir)

@@ -13,7 +13,8 @@ import subprocess
 from datetime import datetime
 import sys
 
-sys.path.insert(0, '/home/user/workspace/the-money-map')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from config.settings import COLORS, FRED_SERIES
 from scripts.data_ingestion import FREDClient
 from scripts.story_discovery import analyze_data, find_related_series
@@ -29,7 +30,7 @@ plt.rcParams.update({
     'grid.linestyle': '--', 'axes.spines.top': False, 'axes.spines.right': False,
 })
 
-BASE = '/home/user/workspace/the-money-map'
+BASE = PROJECT_ROOT
 RENDER_FPS = 5
 
 
