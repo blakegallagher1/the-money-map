@@ -108,10 +108,11 @@ def _load_example_script():
         return None
 
 
-def _build_data_context(story_pkg):
+def _build_data_context(story_pkg, dossier=None):
     """Format the raw data into a clear context block for the LLM."""
     primary = story_pkg['primary']
     related = story_pkg.get('related', [])
+    dossier = dossier or {}
 
     lines = [
         "PRIMARY METRIC:",
@@ -136,22 +137,54 @@ def _build_data_context(story_pkg):
             f"     Latest Date: {r.get('latest_date', 'N/A')}",
         ])
 
+    watch_outs = dossier.get("watch_outs", [])
+    source_list = dossier.get("source_list", [])
+    title_variants = dossier.get("title_variants", [])
+    hook_directions = dossier.get("hook_directions", [])
+    lines.extend(
+        [
+            "",
+            "RESEARCH DOSSIER:",
+            f"  Summary: {dossier.get('summary', 'No dossier summary provided.')}",
+            f"  Angle: {dossier.get('angle', 'No angle provided.')}",
+            "  Watch-outs:",
+            *(f"    - {item}" for item in watch_outs),
+            "  Source list:",
+            *(f"    - {item}" for item in source_list),
+            f"  Novelty guidance: {dossier.get('novelty', 'No novelty guidance provided.')}",
+            "  Title variants:",
+            *(f"    {idx}. {item}" for idx, item in enumerate(title_variants, 1)),
+            "  Hook directions:",
+            *(f"    {idx}. {item}" for idx, item in enumerate(hook_directions, 1)),
+            "",
+            f"  Dossier confidence: {dossier.get('confidence', 'N/A')}",
+        ]
+    )
+
     return "\n".join(lines)
 
 
-def generate_llm_script(story_pkg):
+def generate_llm_script(story_pkg, dossier=None):
     """Generate a script using GPT-5.2 with structured output."""
     from openai import OpenAI
 
     client = OpenAI(api_key=OPENAI_API_KEY)
 
-    data_context = _build_data_context(story_pkg)
+    data_context = _build_data_context(story_pkg, dossier=dossier)
     example_script = _load_example_script()
 
     system = SYSTEM_PROMPT.format(
         target_words=TARGET_WORD_COUNT,
         output_schema=OUTPUT_SCHEMA
     )
+    if dossier:
+        system = (
+            f"{system}\n"
+            "A research dossier is provided below the data. Use the suggested angle, "
+            "respect the watch-outs, and aim for the novelty guidance. "
+            "Consider the title variants but you may create your own. "
+            "Use the hook directions as inspiration."
+        )
 
     user_message = f"Write a Money Map episode script for this economic data:\n\n{data_context}"
 
@@ -248,11 +281,11 @@ def generate_llm_script(story_pkg):
     return script_data
 
 
-def generate_script(story_pkg):
+def generate_script(story_pkg, dossier=None):
     """Main entry point — tries LLM, falls back to template writer."""
     try:
         print("  Using LLM script writer (GPT-5.2)...")
-        result = generate_llm_script(story_pkg)
+        result = generate_llm_script(story_pkg, dossier=dossier)
         print(f"  LLM script generated: {result['word_count']} words, "
               f"~{result['estimated_duration_sec']}s")
         return result

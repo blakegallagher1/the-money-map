@@ -62,15 +62,26 @@ def step_story():
     return pkg
 
 
-def step_script(story_pkg, script_mode='llm'):
+def step_research(story_pkg):
+    log("STEP 2.5: Generating research dossier...")
+    from scripts.topic_research import generate_research_dossier, save_dossier
+
+    dossier = generate_research_dossier(story_pkg)
+    save_dossier(story_pkg['primary']['key'], dossier)
+    log(f"  Dossier summary: {dossier.get('summary', 'n/a')}")
+    log(f"  Dossier confidence: {dossier.get('confidence', 'n/a')}")
+    return dossier
+
+
+def step_script(story_pkg, dossier=None, script_mode='llm'):
     log(f"STEP 3: Writing script (mode: {script_mode})...")
 
     if script_mode == 'llm':
         from scripts.llm_script_writer import generate_script
+        script_data = generate_script(story_pkg, dossier=dossier)
     else:
         from scripts.enhanced_script_writer import generate_enhanced_script as generate_script
-
-    script_data = generate_script(story_pkg)
+        script_data = generate_script(story_pkg)
 
     out_path = os.path.join(DATA_DIR, 'latest_script.json')
     with open(out_path, 'w') as f:
@@ -289,7 +300,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
         f"music={'on' if not no_music else 'off'}, upload={'auto' if not no_upload else 'manual'}")
     log("=" * 60)
 
-    steps = ['data', 'story', 'script', 'broll', 'voiceover', 'music',
+    steps = ['data', 'story', 'research', 'script', 'broll', 'voiceover', 'music',
              'render', 'assemble', 'thumbnail', 'quality_gate', 'upload', 'record']
     start_idx = steps.index(start_step) if start_step in steps else 0
 
@@ -304,10 +315,17 @@ def run_full_pipeline(start_step='data', script_mode='llm',
         if start_idx <= 1:
             results['story'] = step_story()
 
-        # Step 3: Script writing
+        # Step 2.5: Research dossier
+        dossier = None
         if start_idx <= 2:
             story = results.get('story') or step_story()
-            results['script'] = step_script(story, script_mode=script_mode)
+            dossier = step_research(story)
+
+        # Step 3: Script writing
+        if start_idx <= 3 and start_idx != 2:
+            story = results.get('story') or step_story()
+            dossier = dossier or step_research(story)
+            results['script'] = step_script(story, dossier=dossier, script_mode=script_mode)
 
         script_data = results.get('script')
         if script_data is None:
@@ -316,7 +334,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
                 script_data = json.load(f)
 
         # Step 3.5: B-roll generation (optional)
-        if start_idx <= 3 and not no_broll:
+        if start_idx <= 4 and not no_broll:
             try:
                 results['broll'] = step_broll(script_data)
             except Exception as e:
@@ -326,12 +344,12 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             results['broll'] = {}
 
         # Step 4: Voiceover
-        if start_idx <= 4:
+        if start_idx <= 5:
             results['voiceover'] = step_voiceover()
 
         # Step 4.5: Background music (optional)
         vo_path = results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.mp3'))
-        if start_idx <= 5 and not no_music:
+        if start_idx <= 6 and not no_music:
             try:
                 results['audio'] = step_music(vo_path, script_data)
             except Exception as e:
@@ -341,11 +359,11 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             results['audio'] = vo_path
 
         # Step 5: Render data-viz
-        if start_idx <= 6:
+        if start_idx <= 7:
             results['render'] = step_render(script_data=script_data)
 
         # Step 5.5: Final assembly
-        if start_idx <= 7:
+        if start_idx <= 8:
             dataviz_path = results.get('render', os.path.join(OUTPUT_DIR, 'eplatest_v2_final.mp4'))
             broll_paths = results.get('broll', {})
             audio_path = results.get('audio', vo_path)
@@ -354,16 +372,16 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             )
 
         # Step 6: Thumbnail
-        if start_idx <= 8:
+        if start_idx <= 9:
             results['thumbnail'] = step_thumbnail(script_data)
 
         # Step 7: Quality gate
-        if start_idx <= 9:
+        if start_idx <= 10:
             results['quality_gate'] = step_quality_gate(script_data, results)
 
         # Step 8: Upload
         video_url = None
-        if start_idx <= 10:
+        if start_idx <= 11:
             final_video = results.get('final_video', os.path.join(OUTPUT_DIR, 'latest_final.mp4'))
             thumb_path = results.get('thumbnail', os.path.join(OUTPUT_DIR, 'thumbnail.png'))
 
@@ -379,7 +397,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
                 step_upload_prep(script_data)
 
         # Step 8: Record in episode history
-        if start_idx <= 11:
+        if start_idx <= 12:
             step_record_episode(script_data, video_url=video_url)
 
         log("=" * 60)
@@ -413,7 +431,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The Money Map Pipeline V2')
     parser.add_argument('--step', default='data',
-                       choices=['data', 'story', 'script', 'broll', 'voiceover',
+                       choices=['data', 'story', 'research', 'script', 'broll', 'voiceover',
                                 'music', 'render', 'assemble', 'thumbnail', 'quality_gate',
                                 'upload', 'record'])
     parser.add_argument('--script-mode', default='llm', choices=['llm', 'template'],
