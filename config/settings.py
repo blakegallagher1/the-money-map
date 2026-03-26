@@ -56,8 +56,8 @@ TTS_INSTRUCTIONS = (
 )
 
 # --- YouTube Channel ---
-YOUTUBE_CHANNEL_NAME = "The Money Map"
-YOUTUBE_CHANNEL_ID = ""  # Will be populated after OAuth setup
+YOUTUBE_CHANNEL_NAME = "Brick & Yield"
+YOUTUBE_CHANNEL_ID = "UCoW2hWwjudLNuEAF6CiZvcw"
 
 # --- Content Settings ---
 VIDEO_WIDTH = 1920
