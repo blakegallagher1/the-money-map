@@ -1,0 +1,4 @@
+interface:
+  display_name: "Money Map OpenAI CUA"
+  short_description: "Run OpenAI CUA for repo UI tasks"
+  default_prompt: "Use $money-map-openai-cua to run an OpenAI computer-use workflow for this repo."

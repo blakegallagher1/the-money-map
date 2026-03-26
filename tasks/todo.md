@@ -2,6 +2,30 @@
 
 ## Active Sprint
 
+### [ ] OpenAI CUA Skill For Money Map
+- **Goal**: Create a repo-local Codex skill that uses the current OpenAI Computer Use Agent workflow to perform browser-driven tasks for `the-money-map`
+- **Branch**: `main`
+- **Specs**:
+  - Build the skill under `.codex/skills/` so it ships with this repo.
+  - Ground the skill in current OpenAI docs for the Responses API computer-use flow and safety model.
+  - Account for the repo's current `openai==2.16.0` SDK lag by using a raw-response compatibility path instead of relying on generated computer-tool types.
+  - Focus the skill on project-relevant browser tasks such as upload/admin workflows, external UI validation, and repeatable operator actions that are difficult to API-automate.
+- **Steps**:
+  - [x] Gather repo guidance, baseline state, and current OpenAI CUA documentation
+  - [x] Scaffold the repo-local skill and agent metadata
+  - [x] Implement a reusable helper runner for the CUA loop
+  - [x] Add deterministic tests and validate the skill bundle
+  - [x] Update repo docs and record final review notes
+- **Verification**:
+  - [x] Baseline `git status --short` recorded (clean)
+  - [x] Baseline test suite run recorded (`python -m pytest`) with pre-existing collection failure in `tests/test_custom_episode_builder.py`
+  - [x] `python -m pip_audit -r requirements.txt` recorded before dependency changes
+  - [x] `python /Users/gallagherpropertycompany/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/money-map-openai-cua`
+  - [x] Targeted pytest slice for the new helper/test coverage passes
+  - [x] Repo verification summary recorded, including any remaining unrelated baseline failures
+- **Status**: review
+- **Review**: Added the repo-local skill at `.codex/skills/money-map-openai-cua/`, bundled `scripts/run_cua_task.py` as a raw-response OpenAI CUA Playwright harness that matches the current GA docs while working around the repo's `openai==2.16.0` generated-type lag, documented the integration and usage path in `README.md`, added a deterministic pytest slice for the helper, and updated `requirements.txt` plus `.gitignore` for the new workflow. Validation passed via `quick_validate.py`, `python -m pytest tests/test_money_map_openai_cua.py -q`, `python .codex/skills/money-map-openai-cua/scripts/run_cua_task.py --help`, and `python -m pip_audit -r requirements.txt`. Full `python -m pytest` remains blocked by the same pre-existing `tests/test_custom_episode_builder.py` import error recorded at baseline.
+
 ### [ ] Imagegen Visual Upgrade
 - **Goal**: Replace the weakest slideshow beats in the CRE balance-sheet episode with high-end generated stills and rebuild the video around those visuals
 - **Branch**: `main`

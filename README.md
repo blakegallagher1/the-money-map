@@ -66,6 +66,13 @@ pip install -r requirements.txt
 export FRED_API_KEY="your_key_here"
 ```
 
+If you want to use the repo-local OpenAI Computer Use helper, install Chromium for
+Playwright as well:
+
+```bash
+python -m playwright install chromium
+```
+
 ## Run
 
 ```bash
@@ -91,6 +98,21 @@ python scripts/enhanced_thumbnail.py N
 
 # Full assembly with b-roll interleaving
 python scripts/final_assembly.py N
+```
+
+## Repo-Local Skill
+
+This repo now includes a project-scoped Codex skill at
+`.codex/skills/money-map-openai-cua/` for browser-only operator tasks that are a
+bad fit for the deterministic pipeline scripts. The bundled helper uses the
+current OpenAI computer-use loop with a repo-local Playwright harness and writes
+screenshots plus raw response JSON to `output/cua/`.
+
+```bash
+python .codex/skills/money-map-openai-cua/scripts/run_cua_task.py \
+  --task "Upload the finished episode draft in YouTube Studio, then stop before publish." \
+  --start-url "https://studio.youtube.com" \
+  --allow-domain "studio.youtube.com"
 ```
 
 Custom narrated episodes write their combined script to `data/<slug>/voiceover_script.txt`,
