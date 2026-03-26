@@ -25,7 +25,7 @@ import shutil
 from datetime import datetime
 import sys
 
-sys.path.insert(0, '/home/user/workspace/the-money-map')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import COLORS, FRED_SERIES
 from scripts.data_ingestion import FREDClient
 
