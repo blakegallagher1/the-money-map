@@ -36,6 +36,64 @@ def image_path(slug: str, image_id: str, output_format: str) -> Path:
     return OUTPUT_DIR / slug / f"{image_id}.{output_format}"
 
 
+def build_augmented_prompt(image: dict[str, Any]) -> str:
+    """Build the structured prompt text for one image request."""
+    parts = [f"Primary request: {image['prompt']}"]
+    for key, label in [
+        ("scene", "Scene/background"),
+        ("subject", "Subject"),
+        ("camera", "Camera"),
+        ("lighting", "Lighting/mood"),
+        ("palette", "Color palette"),
+        ("style", "Style/format"),
+        ("constraints", "Constraints"),
+        ("negative", "Avoid"),
+    ]:
+        value = image.get(key)
+        if value:
+            parts.append(f"{label}: {value}")
+    return "\n".join(parts)
+
+
+def build_image_command(
+    image: dict[str, Any],
+    *,
+    model: str,
+    size: str,
+    quality: str,
+    output_format: str,
+    out_path: Path,
+    force: bool,
+    dry_run: bool,
+) -> list[str]:
+    """Return a structured compatibility command for one image job."""
+    command = [
+        "python",
+        str(Path(__file__).resolve()),
+        "--prompt",
+        image["prompt"],
+        "--model",
+        model,
+        "--size",
+        size,
+        "--quality",
+        quality,
+        "--output-format",
+        output_format,
+        "--out",
+        str(out_path),
+    ]
+    for key in ("scene", "subject", "camera", "lighting", "palette", "style", "constraints", "negative"):
+        value = image.get(key)
+        if value:
+            command.extend([f"--{key}", str(value)])
+    if force:
+        command.append("--force")
+    if dry_run:
+        command.append("--dry-run")
+    return command
+
+
 def generate_image(
     plan: dict[str, Any],
     image: dict[str, Any],
@@ -55,7 +113,7 @@ def generate_image(
     model = str(image.get("model", plan.get("model", "gpt-image-1.5")))
     size = str(image.get("size", plan.get("size", "1536x1024")))
     quality = str(image.get("quality", plan.get("quality", "high")))
-    prompt = image["prompt"]
+    prompt = build_augmented_prompt(image)
 
     if dry_run:
         print(f"  [dry-run] Would generate: model={model} size={size} quality={quality}")

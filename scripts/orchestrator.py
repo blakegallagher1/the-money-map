@@ -21,6 +21,7 @@ import argparse
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config.settings import get_quality_profile, TTS_PROVIDER
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE, 'data')
@@ -33,6 +34,14 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 def log(msg):
     ts = datetime.now().strftime('%H:%M:%S')
     print(f"[{ts}] {msg}")
+
+
+def _load_json_if_exists(path):
+    """Load JSON from disk if present, else return None."""
+    if not os.path.exists(path):
+        return None
+    with open(path) as handle:
+        return json.load(handle)
 
 
 def step_data():
@@ -94,39 +103,89 @@ def step_script(story_pkg, dossier=None, script_mode='llm'):
     return script_data
 
 
-def step_broll(script_data):
+def step_broll(storyboard, quality_profile):
     log("STEP 3.5: Generating b-roll clips via Luma...")
     from scripts.broll_generator import generate_broll
+    quality_profile = quality_profile or get_quality_profile()
 
-    broll_prompts = script_data.get('broll_prompts', {})
+    broll_prompts = (storyboard or {}).get('broll_prompts', {})
     if not broll_prompts:
-        log("  No b-roll prompts found in script — skipping")
+        log("  No storyboard b-roll prompts found — skipping")
         return {}
 
     broll_dir = os.path.join(OUTPUT_DIR, 'broll_latest')
-    results = generate_broll(broll_prompts, broll_dir)
+    results = generate_broll(
+        broll_prompts,
+        broll_dir,
+        width=quality_profile["width"],
+        height=quality_profile["height"],
+        fps=quality_profile["fps"],
+    )
 
     generated = sum(1 for v in results.values() if v is not None)
     log(f"  B-roll complete: {generated}/{len(results)} clips")
     return results
 
 
-def step_voiceover():
+def step_voiceover(script_data, force=False):
     log("STEP 4: Voiceover generation...")
+    log(f"  TTS provider: {TTS_PROVIDER}")
     vo_path = os.path.join(OUTPUT_DIR, 'voiceover.wav')
-    script_path = os.path.join(DATA_DIR, 'voiceover_script.txt')
+    timeline_path = os.path.join(DATA_DIR, 'voiceover_timeline.json')
 
-    if os.path.exists(vo_path):
+    if force:
+        for stale in ('voiceover.wav', 'voiceover_normalized.wav', 'mixed_audio.wav'):
+            p = os.path.join(OUTPUT_DIR, stale)
+            if os.path.exists(p):
+                os.remove(p)
+                log(f"  Removed cached audio: {stale}")
+        for stale in ('voiceover_timeline.json', 'storyboard_manifest.json'):
+            p = os.path.join(DATA_DIR, stale)
+            if os.path.exists(p):
+                os.remove(p)
+                log(f"  Removed cached timeline: {stale}")
+
+    if os.path.exists(vo_path) and os.path.exists(timeline_path) and not force:
         age_hours = (time.time() - os.path.getmtime(vo_path)) / 3600
         if age_hours < 2:
             log(f"  Using existing voiceover ({age_hours:.1f}h old)")
-            return vo_path
+            return {
+                "output_path": vo_path,
+                "timeline_path": timeline_path,
+                "timeline": _load_json_if_exists(timeline_path) or {},
+            }
 
-    from scripts.tts_generator import generate_voiceover
-    log("  Generating voiceover via OpenAI gpt-4o-mini-tts...")
-    result_path = generate_voiceover(script_path=script_path, output_path=vo_path)
-    log(f"  Voiceover saved: {result_path}")
-    return result_path
+    from scripts.storyboard_planner import ordered_section_entries
+    from scripts.tts_generator import generate_voiceover_timeline
+
+    sections = ordered_section_entries(script_data)
+    if not sections:
+        raise ValueError("Script data is missing ordered sections for voiceover generation.")
+
+    log("  Generating section-timed voiceover...")
+    result = generate_voiceover_timeline(
+        sections,
+        output_path=vo_path,
+        timeline_path=timeline_path,
+    )
+    log(f"  Voiceover saved: {result['output_path']}")
+    log(f"  Voiceover timeline: {result['timeline_path']}")
+    return result
+
+
+def step_storyboard(script_data, voiceover_timeline=None):
+    """Build and persist the beat-level storyboard manifest."""
+    log("STEP 4.2: Planning storyboard timeline...")
+    from scripts.storyboard_planner import build_storyboard, save_storyboard
+
+    storyboard = build_storyboard(script_data, voiceover_timeline=voiceover_timeline)
+    storyboard_path = os.path.join(DATA_DIR, 'storyboard_manifest.json')
+    save_storyboard(storyboard, storyboard_path)
+    log(
+        f"  Storyboard beats: {storyboard.get('beat_count', 0)} "
+        f"({len(storyboard.get('broll_prompts', {}))} b-roll clips planned)"
+    )
+    return {"path": storyboard_path, "manifest": storyboard}
 
 
 def step_music(voiceover_path, script_data):
@@ -143,8 +202,9 @@ def step_music(voiceover_path, script_data):
     return mixed_path
 
 
-def step_render(script_data=None):
+def step_render(script_data=None, quality_profile=None, storyboard=None):
     log("STEP 5: Rendering video...")
+    quality_profile = quality_profile or get_quality_profile()
 
     if script_data:
         # Use enhanced renderer with dynamic durations
@@ -152,7 +212,16 @@ def step_render(script_data=None):
 
         script_path = os.path.join(DATA_DIR, 'latest_script.json')
         ep_num = 'latest'
-        video_path = render_episode(ep_num, script_path, OUTPUT_DIR)
+        scene_durations = (storyboard or {}).get('scene_durations')
+        video_path = render_episode(
+            ep_num,
+            script_path,
+            OUTPUT_DIR,
+            width=quality_profile["width"],
+            height=quality_profile["height"],
+            fps=quality_profile["fps"],
+            scene_durations=scene_durations,
+        )
     else:
         # Legacy render
         import subprocess
@@ -169,14 +238,14 @@ def step_render(script_data=None):
     return video_path
 
 
-def step_assemble(dataviz_path, broll_paths, audio_path, script_data):
+def step_assemble(dataviz_path, broll_paths, audio_path, script_data, storyboard=None):
     log("STEP 5.5: Final assembly (interleaving b-roll + audio)...")
     from scripts.final_assembly import assemble_episode_dynamic
 
     output_path = os.path.join(OUTPUT_DIR, 'latest_final.mp4')
     result = assemble_episode_dynamic(
         dataviz_path, broll_paths, audio_path, output_path,
-        script_data=script_data
+        script_data=script_data, storyboard=storyboard
     )
     log(f"  Final video: {result}")
     return result
@@ -197,18 +266,27 @@ def step_thumbnail(script_data=None):
     return thumb_path
 
 
-def step_quality_gate(script_data, results):
+def step_quality_gate(script_data, results, min_word_count=None):
     log("STEP 7: Running quality gate...")
     from scripts.quality_gate import quality_gate_report_path, run_quality_gate
     from scripts.episode_tracker import load_history
 
     artifact_paths = {
         "voiceover_path": results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.wav')),
+        "audio_path": results.get('audio', os.path.join(OUTPUT_DIR, 'voiceover_normalized.wav')),
         "thumbnail_path": results.get('thumbnail', os.path.join(OUTPUT_DIR, 'thumbnail.png')),
         "final_video_path": results.get(
             'final_video', os.path.join(OUTPUT_DIR, 'latest_final.mp4')
         ),
         "script_json_path": os.path.join(DATA_DIR, 'latest_script.json'),
+        "audio_quality_report_path": os.path.join(OUTPUT_DIR, 'audio_quality_report.json'),
+        "music_provenance_path": os.path.join(OUTPUT_DIR, 'music_provenance.json'),
+        "storyboard_path": results.get(
+            'storyboard_path', os.path.join(DATA_DIR, 'storyboard_manifest.json')
+        ),
+        "voiceover_timeline_path": results.get(
+            'voiceover_timeline_path', os.path.join(DATA_DIR, 'voiceover_timeline.json')
+        ),
     }
 
     previous_entries = load_history()
@@ -222,6 +300,7 @@ def step_quality_gate(script_data, results):
         script_data,
         artifact_paths,
         previous_titles=previous_titles,
+        min_word_count=min_word_count,
     )
 
     issues = result.get('issues', [])
@@ -288,16 +367,23 @@ def step_record_episode(script_data, video_url=None):
 
 
 def run_full_pipeline(start_step='data', script_mode='llm',
-                      no_upload=False, no_broll=False, no_music=False):
+                      no_upload=False, no_broll=False, no_music=False,
+                      quality_tier=None, min_word_count=None,
+                      force_voiceover=False):
+    quality_profile = get_quality_profile(quality_tier)
     log("=" * 60)
     log("THE MONEY MAP — EPISODE PIPELINE V2")
     log(f"Started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    log(
+        f"Render profile: {quality_profile['tier']} "
+        f"({quality_profile['width']}x{quality_profile['height']} @ {quality_profile['fps']}fps)"
+    )
     log(f"Options: script_mode={script_mode}, broll={'on' if not no_broll else 'off'}, "
         f"music={'on' if not no_music else 'off'}, upload={'auto' if not no_upload else 'manual'}")
     log("=" * 60)
 
-    steps = ['data', 'story', 'research', 'script', 'broll', 'voiceover', 'music',
-             'render', 'assemble', 'thumbnail', 'quality_gate', 'upload', 'record']
+    steps = ['data', 'story', 'research', 'script', 'voiceover', 'storyboard', 'broll',
+             'music', 'render', 'assemble', 'thumbnail', 'quality_gate', 'upload', 'record']
     start_idx = steps.index(start_step) if start_step in steps else 0
 
     results = {}
@@ -329,23 +415,43 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             with open(script_path) as f:
                 script_data = json.load(f)
 
+        # Step 4: Voiceover
+        voiceover_result = None
+        if start_idx <= 4:
+            voiceover_result = step_voiceover(script_data, force=force_voiceover)
+            results['voiceover'] = voiceover_result['output_path']
+            results['voiceover_timeline_path'] = voiceover_result['timeline_path']
+
+        voiceover_timeline = (
+            voiceover_result.get('timeline') if voiceover_result else
+            _load_json_if_exists(os.path.join(DATA_DIR, 'voiceover_timeline.json'))
+        )
+
+        # Step 4.2: Storyboard planning
+        storyboard_result = None
+        if start_idx <= 5:
+            storyboard_result = step_storyboard(script_data, voiceover_timeline=voiceover_timeline)
+            results['storyboard'] = storyboard_result['manifest']
+            results['storyboard_path'] = storyboard_result['path']
+
+        storyboard_manifest = (
+            storyboard_result.get('manifest') if storyboard_result else
+            _load_json_if_exists(os.path.join(DATA_DIR, 'storyboard_manifest.json'))
+        ) or {}
+
         # Step 3.5: B-roll generation (optional)
-        if start_idx <= 4 and not no_broll:
+        if start_idx <= 6 and not no_broll:
             try:
-                results['broll'] = step_broll(script_data)
+                results['broll'] = step_broll(storyboard_manifest, quality_profile)
             except Exception as e:
                 log(f"  B-roll generation failed: {e} — continuing without b-roll")
                 results['broll'] = {}
         else:
             results['broll'] = {}
 
-        # Step 4: Voiceover
-        if start_idx <= 5:
-            results['voiceover'] = step_voiceover()
-
         # Step 4.5: Background music (optional)
         vo_path = results.get('voiceover', os.path.join(OUTPUT_DIR, 'voiceover.wav'))
-        if start_idx <= 6 and not no_music:
+        if start_idx <= 7 and not no_music:
             try:
                 results['audio'] = step_music(vo_path, script_data)
             except Exception as e:
@@ -355,29 +461,45 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             results['audio'] = vo_path
 
         # Step 5: Render data-viz
-        if start_idx <= 7:
-            results['render'] = step_render(script_data=script_data)
+        if start_idx <= 8:
+            results['render'] = step_render(
+                script_data=script_data,
+                quality_profile=quality_profile,
+                storyboard=storyboard_manifest,
+            )
 
         # Step 5.5: Final assembly
-        if start_idx <= 8:
+        if start_idx <= 9:
             dataviz_path = results.get('render', os.path.join(OUTPUT_DIR, 'latest_v2_final.mp4'))
             broll_paths = results.get('broll', {})
             audio_path = results.get('audio', vo_path)
             results['final_video'] = step_assemble(
-                dataviz_path, broll_paths, audio_path, script_data
+                dataviz_path,
+                broll_paths,
+                audio_path,
+                script_data,
+                storyboard=storyboard_manifest,
             )
 
         # Step 6: Thumbnail
-        if start_idx <= 9:
+        if start_idx <= 10:
             results['thumbnail'] = step_thumbnail(script_data)
 
         # Step 7: Quality gate
-        if start_idx <= 10:
-            results['quality_gate'] = step_quality_gate(script_data, results)
+        if start_idx <= 11:
+            results['quality_gate'] = step_quality_gate(
+                script_data, results, min_word_count=min_word_count
+            )
 
         # Step 8: Upload
         video_url = None
-        if start_idx <= 11:
+        if start_idx <= 12:
+            # Always enforce quality gate before upload, even when resuming at upload.
+            if 'quality_gate' not in results:
+                results['quality_gate'] = step_quality_gate(
+                    script_data, results, min_word_count=min_word_count
+                )
+
             final_video = results.get('final_video', os.path.join(OUTPUT_DIR, 'latest_final.mp4'))
             thumb_path = results.get('thumbnail', os.path.join(OUTPUT_DIR, 'thumbnail.png'))
 
@@ -393,7 +515,7 @@ def run_full_pipeline(start_step='data', script_mode='llm',
                 step_upload_prep(script_data)
 
         # Step 8: Record in episode history
-        if start_idx <= 12:
+        if start_idx <= 13:
             step_record_episode(script_data, video_url=video_url)
 
         log("=" * 60)
@@ -405,6 +527,8 @@ def run_full_pipeline(start_step='data', script_mode='llm',
             'status': 'success',
             'steps_run': steps[start_idx:],
             'script_mode': script_mode,
+            'quality_tier': quality_profile["tier"],
+            'min_word_count_override': min_word_count,
             'title': script_data.get('title', ''),
             'word_count': script_data.get('word_count', 0),
             'video_url': video_url,
@@ -427,8 +551,8 @@ def run_full_pipeline(start_step='data', script_mode='llm',
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='The Money Map Pipeline V2')
     parser.add_argument('--step', default='data',
-                       choices=['data', 'story', 'research', 'script', 'broll', 'voiceover',
-                                'music', 'render', 'assemble', 'thumbnail', 'quality_gate',
+                       choices=['data', 'story', 'research', 'script', 'voiceover',
+                                'storyboard', 'broll', 'music', 'render', 'assemble', 'thumbnail', 'quality_gate',
                                 'upload', 'record'])
     parser.add_argument('--script-mode', default='llm', choices=['llm', 'template'],
                        help='Script generation mode: llm (GPT-5.2) or template')
@@ -440,6 +564,24 @@ if __name__ == "__main__":
                        help='Skip b-roll generation')
     parser.add_argument('--no-music', action='store_true',
                        help='Skip background music mixing')
+    parser.add_argument(
+        '--quality-tier',
+        default=None,
+        choices=['1080', '1440', '2160'],
+        help='Render/output tier. Defaults to settings QUALITY_TIER (recommended: 1440).',
+    )
+    parser.add_argument(
+        '--min-words',
+        type=int,
+        default=None,
+        metavar='N',
+        help='Override quality-gate minimum script word count (default: gate module default).',
+    )
+    parser.add_argument(
+        '--force-voiceover',
+        action='store_true',
+        help='Regenerate voiceover (ignore <2h cache); clears normalized/mixed audio too.',
+    )
     args = parser.parse_args()
 
     if args.dry_run:
@@ -449,6 +591,12 @@ if __name__ == "__main__":
         log(f"  Music: {'enabled' if not args.no_music else 'disabled'}")
         log(f"  Upload: {'auto' if not args.no_upload else 'manual'}")
         log(f"  Start step: {args.step}")
+        profile = get_quality_profile(args.quality_tier)
+        log(f"  Quality tier: {profile['tier']} ({profile['width']}x{profile['height']} @ {profile['fps']}fps)")
+        if args.min_words is not None:
+            log(f"  Min words (gate): {args.min_words}")
+        if args.force_voiceover:
+            log("  Force voiceover: yes")
     else:
         run_full_pipeline(
             start_step=args.step,
@@ -456,4 +604,7 @@ if __name__ == "__main__":
             no_upload=args.no_upload,
             no_broll=args.no_broll,
             no_music=args.no_music,
+            quality_tier=args.quality_tier,
+            min_word_count=args.min_words,
+            force_voiceover=args.force_voiceover,
         )

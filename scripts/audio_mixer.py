@@ -10,6 +10,8 @@ Pipeline:
 import os
 import subprocess
 import sys
+from datetime import datetime
+import json
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -34,6 +36,8 @@ FADE_OUT_SEC = 3.0
 TARGET_LUFS = -16
 TARGET_TRUE_PEAK = -1.5
 TARGET_LRA = 11
+AUDIO_QUALITY_REPORT = "audio_quality_report.json"
+MUSIC_PROVENANCE_REPORT = "music_provenance.json"
 
 
 def get_audio_duration(path):
@@ -43,6 +47,82 @@ def get_audio_duration(path):
         '-of', 'csv=p=0', path
     ], capture_output=True, text=True)
     return float(result.stdout.strip())
+
+
+def _extract_loudnorm_json(stderr_text):
+    """Extract loudnorm JSON payload from ffmpeg stderr."""
+    json_start = stderr_text.rfind('{')
+    json_end = stderr_text.rfind('}') + 1
+    if json_start >= 0 and json_end > json_start:
+        try:
+            return json.loads(stderr_text[json_start:json_end])
+        except json.JSONDecodeError:
+            return None
+    return None
+
+
+def measure_loudness(path):
+    """Measure integrated LUFS and true peak using ffmpeg loudnorm."""
+    cmd = [
+        'ffmpeg', '-y', '-i', path,
+        '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json',
+        '-f', 'null', '-'
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    payload = _extract_loudnorm_json(result.stderr)
+    if not payload:
+        return {
+            "integrated_lufs": None,
+            "true_peak_dbtp": None,
+            "lra": None,
+            "measured": False,
+        }
+    return {
+        "integrated_lufs": payload.get("input_i"),
+        "true_peak_dbtp": payload.get("input_tp"),
+        "lra": payload.get("input_lra"),
+        "threshold": payload.get("input_thresh"),
+        "target_offset": payload.get("target_offset"),
+        "measured": True,
+    }
+
+
+def _write_json(path, payload):
+    """Persist structured report payload."""
+    with open(path, "w") as handle:
+        json.dump(payload, handle, indent=2)
+
+
+def _build_music_provenance(music_path, final_audio_path):
+    """Build provenance metadata for the selected music source."""
+    if not music_path:
+        return {
+            "source": "none",
+            "license_id": "voice_only",
+            "file_path": final_audio_path,
+            "music_enabled": False,
+        }
+
+    normalized = os.path.abspath(music_path)
+    filename = os.path.basename(normalized)
+    stem, _ = os.path.splitext(filename)
+
+    if "/assets/music/" in normalized.replace("\\", "/"):
+        source = "static_library"
+        license_id = stem
+    elif "/output/" in normalized.replace("\\", "/"):
+        source = "ai_generated"
+        license_id = "generated_track"
+    else:
+        source = "external"
+        license_id = stem or "unknown"
+
+    return {
+        "source": source,
+        "license_id": license_id,
+        "file_path": normalized,
+        "music_enabled": True,
+    }
 
 
 def normalize_voiceover(input_path, output_path):
@@ -61,27 +141,13 @@ def normalize_voiceover(input_path, output_path):
         measure_cmd, capture_output=True, text=True, timeout=120
     )
 
-    # Parse measured values from stderr (loudnorm outputs JSON to stderr)
-    import json
-    stderr = measure_result.stderr
-    # Find the JSON block in stderr
-    json_start = stderr.rfind('{')
-    json_end = stderr.rfind('}') + 1
-    if json_start >= 0 and json_end > json_start:
-        try:
-            measured = json.loads(stderr[json_start:json_end])
-            measured_i = measured.get('input_i', str(TARGET_LUFS))
-            measured_tp = measured.get('input_tp', str(TARGET_TRUE_PEAK))
-            measured_lra = measured.get('input_lra', str(TARGET_LRA))
-            measured_thresh = measured.get('input_thresh', '-26.0')
-            target_offset = measured.get('target_offset', '0.0')
-        except (json.JSONDecodeError, KeyError):
-            # Fallback to single-pass if measurement parsing fails
-            measured_i = str(TARGET_LUFS)
-            measured_tp = str(TARGET_TRUE_PEAK)
-            measured_lra = str(TARGET_LRA)
-            measured_thresh = '-26.0'
-            target_offset = '0.0'
+    measured = _extract_loudnorm_json(measure_result.stderr)
+    if measured:
+        measured_i = measured.get('input_i', str(TARGET_LUFS))
+        measured_tp = measured.get('input_tp', str(TARGET_TRUE_PEAK))
+        measured_lra = measured.get('input_lra', str(TARGET_LRA))
+        measured_thresh = measured.get('input_thresh', '-26.0')
+        target_offset = measured.get('target_offset', '0.0')
     else:
         measured_i = str(TARGET_LUFS)
         measured_tp = str(TARGET_TRUE_PEAK)
@@ -210,13 +276,31 @@ def process_audio(voiceover_path, script_data, output_dir):
 
     # Step 2: Select and mix music
     music_path = select_music(script_data, output_dir=output_dir)
-
+    final_audio_path = voiceover_path
     if music_path is None:
         print("  Skipping music mix — no tracks available")
-        return voiceover_path
+        final_audio_path = voiceover_path
+    else:
+        mixed_path = os.path.join(output_dir, 'mixed_audio.wav')
+        final_audio_path = mix_audio(voiceover_path, music_path, mixed_path)
 
-    mixed_path = os.path.join(output_dir, 'mixed_audio.wav')
-    return mix_audio(voiceover_path, music_path, mixed_path)
+    # Persist compliance artifacts for pre-upload quality gate.
+    loudness = measure_loudness(final_audio_path)
+    loudness_payload = {
+        "generated_at": datetime.now().isoformat(),
+        "target_lufs": TARGET_LUFS,
+        "target_true_peak_dbtp": TARGET_TRUE_PEAK,
+        "audio_path": os.path.abspath(final_audio_path),
+        "metrics": loudness,
+    }
+    provenance_payload = {
+        "generated_at": datetime.now().isoformat(),
+        "audio_path": os.path.abspath(final_audio_path),
+        **_build_music_provenance(music_path, final_audio_path),
+    }
+    _write_json(os.path.join(output_dir, AUDIO_QUALITY_REPORT), loudness_payload)
+    _write_json(os.path.join(output_dir, MUSIC_PROVENANCE_REPORT), provenance_payload)
+    return final_audio_path
 
 
 if __name__ == "__main__":

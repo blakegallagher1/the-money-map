@@ -41,19 +41,52 @@ YOUTUBE_CATEGORY_ID = "27"  # Education
 AUTO_UPLOAD = os.environ.get("AUTO_UPLOAD", "false").lower() == "true"
 
 # --- TTS Settings (OpenAI gpt-4o-mini-tts) ---
-TTS_MODEL = "gpt-4o-mini-tts"
-TTS_VOICE = "ash"  # Deep, authoritative — closest match to prior "charon" voice
+# OpenAI recommends marin/cedar for best quality in the TTS guide.
+TTS_MODEL = "gpt-4o-mini-tts-2025-12-15"
+TTS_FALLBACK_MODEL = "gpt-4o-mini-tts"
+TTS_VOICE = "marin"
+TTS_FALLBACK_VOICES = ["cedar"]
 TTS_INSTRUCTIONS = (
-    "Voice Affect: Confident, authoritative data journalist. "
-    "Think Bloomberg TV anchor meets accessible YouTuber.\n"
-    "Tone: Urgent but measured — convey that this data matters "
-    "without being alarmist.\n"
-    "Pacing: Moderate pace with deliberate pauses after key statistics. "
-    "Speed up slightly during context and background, slow down for the main reveal.\n"
-    "Emotion: Genuine surprise at dramatic numbers. Empathy when discussing "
-    "consumer impact. Excitement during the hook.\n"
-    "Emphasis: Hit numbers hard — pronounce dollar amounts and percentages "
-    "with weight. Pause briefly before and after the biggest stat."
+    "Role: Professional macroeconomic narrator for a YouTube briefing.\n"
+    "Tone: Confident, credible, and calm. Avoid hype and avoid monotone delivery.\n"
+    "Pacing: Baseline pace ~145 words per minute. Slow down 10-15% for key statistics, "
+    "year-over-year deltas, and dollar/percent figures.\n"
+    "Pauses: Add a short pause after each major claim and a slightly longer pause before the "
+    "main takeaway sentence of each section.\n"
+    "Emphasis: Clearly stress numeric magnitude words like 'billion', 'percent', "
+    "'highest', 'lowest', 'accelerated', and 'slowed'.\n"
+    "Prosody: Keep transitions smooth between sections; maintain consistent loudness and tone "
+    "from intro through close.\n"
+    "Pronunciation: Read symbols naturally (for example '$3.97' as 'three dollars and "
+    "ninety-seven cents')."
+)
+
+# --- TTS provider (openai | elevenlabs) ---
+# ElevenLabs: https://elevenlabs.io/docs/api-reference/text-to-speech/convert
+TTS_PROVIDER = os.environ.get("TTS_PROVIDER", "openai").strip().lower()
+_vo_norm = os.environ.get("VOICEOVER_NORMALIZE", "true").strip().lower()
+VOICEOVER_NORMALIZE = _vo_norm not in ("0", "false", "no", "off")
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID", "").strip()
+ELEVENLABS_MODEL_ID = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2").strip()
+# mp3_44100_128 works on free/Creator; wav_44100 requires Pro+ per ElevenLabs API.
+ELEVENLABS_OUTPUT_FORMAT = os.environ.get("ELEVENLABS_OUTPUT_FORMAT", "mp3_44100_128").strip()
+ELEVENLABS_API_BASE = os.environ.get("ELEVENLABS_API_BASE", "https://api.elevenlabs.io").rstrip("/")
+ELEVENLABS_MAX_CHARS = int(os.environ.get("ELEVENLABS_MAX_CHARS", "2500"))
+ELEVENLABS_STABILITY = float(os.environ.get("ELEVENLABS_STABILITY", "0.5"))
+ELEVENLABS_SIMILARITY = float(os.environ.get("ELEVENLABS_SIMILARITY", "0.75"))
+ELEVENLABS_STYLE = float(os.environ.get("ELEVENLABS_STYLE", "0.0"))
+ELEVENLABS_SPEED = float(os.environ.get("ELEVENLABS_SPEED", "1.0"))
+# Omit from API request unless set to auto|on|off. Use "off" if ElevenLabs double-normalizes
+# numbers after normalize_for_tts (see ElevenLabs apply_text_normalization docs).
+_el_norm = os.environ.get("ELEVENLABS_APPLY_TEXT_NORMALIZATION", "").strip().lower()
+ELEVENLABS_APPLY_TEXT_NORMALIZATION = (
+    _el_norm if _el_norm in ("auto", "on", "off") else None
+)
+# Set to e.g. "en" for clearer English normalization on multilingual models (optional).
+ELEVENLABS_LANGUAGE_CODE = os.environ.get("ELEVENLABS_LANGUAGE_CODE", "").strip()
+TTS_ELEVENLABS_FALLBACK_OPENAI = (
+    os.environ.get("TTS_ELEVENLABS_FALLBACK_OPENAI", "false").lower() == "true"
 )
 
 # --- YouTube Channel ---
@@ -61,11 +94,29 @@ YOUTUBE_CHANNEL_NAME = "Brick & Yield"
 YOUTUBE_CHANNEL_ID = "UCoW2hWwjudLNuEAF6CiZvcw"
 
 # --- Content Settings ---
-VIDEO_WIDTH = 1920
-VIDEO_HEIGHT = 1080
-FPS = 30
+QUALITY_TIERS = {
+    "1080": {"width": 1920, "height": 1080, "fps": 30},
+    "1440": {"width": 2560, "height": 1440, "fps": 30},
+    "2160": {"width": 3840, "height": 2160, "fps": 30},
+}
+DEFAULT_QUALITY_TIER = os.environ.get("QUALITY_TIER", "1440")
+if DEFAULT_QUALITY_TIER not in QUALITY_TIERS:
+    DEFAULT_QUALITY_TIER = "1440"
+
+VIDEO_WIDTH = QUALITY_TIERS[DEFAULT_QUALITY_TIER]["width"]
+VIDEO_HEIGHT = QUALITY_TIERS[DEFAULT_QUALITY_TIER]["height"]
+FPS = QUALITY_TIERS[DEFAULT_QUALITY_TIER]["fps"]
 VIDEO_DURATION_TARGET = 270  # Target ~4.5 minutes per video
 FONT_FAMILY = "DejaVu Sans"
+
+
+def get_quality_profile(tier: str | None = None) -> dict:
+    """Return normalized render profile for a quality tier."""
+    selected = tier or DEFAULT_QUALITY_TIER
+    if selected not in QUALITY_TIERS:
+        raise ValueError(f"Unknown quality tier '{selected}'. Valid: {sorted(QUALITY_TIERS)}")
+    profile = QUALITY_TIERS[selected]
+    return {"tier": selected, **profile}
 
 # --- Color Palette (Dark, Cinematic, Data-Viz Optimized) ---
 COLORS = {

@@ -3,7 +3,7 @@ Automated B-Roll Generator for The Money Map
 Generates AI video clips via Luma Dream Machine API.
 
 Takes b-roll prompts from script JSON and produces 4-second
-cinematic clips, normalized to 1920x1080/30fps.
+cinematic clips, normalized to target resolution/fps.
 """
 import hashlib
 import json
@@ -13,7 +13,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config.settings import LUMA_API_KEY, BROLL_DURATION
+from config.settings import LUMA_API_KEY, BROLL_DURATION, VIDEO_WIDTH, VIDEO_HEIGHT, FPS
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = os.path.join(BASE, 'assets', 'broll_cache')
@@ -24,14 +24,14 @@ def _prompt_hash(prompt):
     return hashlib.md5(prompt.encode()).hexdigest()[:12]
 
 
-def _normalize_clip(input_path, output_path):
-    """Re-encode clip to match data-viz format (30fps, yuv420p, 1920x1080)."""
+def _normalize_clip(input_path, output_path, width=VIDEO_WIDTH, height=VIDEO_HEIGHT, fps=FPS):
+    """Re-encode clip to match target data-viz format."""
     subprocess.run([
         'ffmpeg', '-y', '-i', input_path,
-        '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,'
-               'pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
+        '-vf', f'scale={width}:{height}:force_original_aspect_ratio=decrease,'
+               f'pad={width}:{height}:(ow-iw)/2:(oh-ih)/2',
         '-c:v', 'libx264', '-preset', 'medium', '-crf', '18',
-        '-r', '30', '-pix_fmt', 'yuv420p',
+        '-r', str(fps), '-pix_fmt', 'yuv420p',
         '-an',
         output_path
     ], capture_output=True, text=True, timeout=120, check=True)
@@ -54,7 +54,7 @@ def _save_to_cache(prompt, clip_path):
     return cache_path
 
 
-def generate_single_clip(prompt, output_path, max_retries=3):
+def generate_single_clip(prompt, output_path, max_retries=3, width=VIDEO_WIDTH, height=VIDEO_HEIGHT, fps=FPS):
     """Generate a single b-roll clip via Luma Dream Machine API.
 
     Args:
@@ -66,7 +66,7 @@ def generate_single_clip(prompt, output_path, max_retries=3):
     cached = _check_cache(prompt)
     if cached:
         print(f"    Using cached clip: {cached}")
-        _normalize_clip(cached, output_path)
+        _normalize_clip(cached, output_path, width=width, height=height, fps=fps)
         return output_path
 
     if not LUMA_API_KEY:
@@ -116,8 +116,8 @@ def generate_single_clip(prompt, output_path, max_retries=3):
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-            # Normalize to 1920x1080/30fps
-            _normalize_clip(raw_path, output_path)
+            # Normalize to target output format
+            _normalize_clip(raw_path, output_path, width=width, height=height, fps=fps)
 
             # Cache for future use
             _save_to_cache(prompt, output_path)
@@ -139,23 +139,20 @@ def generate_single_clip(prompt, output_path, max_retries=3):
                 )
 
 
-def generate_broll(broll_prompts, output_dir):
-    """Generate all b-roll clips for an episode.
-
-    Args:
-        broll_prompts: dict with keys 'hook', 'context', 'insight'
-        output_dir: directory to save clips
-
-    Returns:
-        dict mapping scene names to file paths
-    """
+def generate_broll(broll_prompts, output_dir, width=VIDEO_WIDTH, height=VIDEO_HEIGHT, fps=FPS):
+    """Generate all requested b-roll clips for an episode."""
     os.makedirs(output_dir, exist_ok=True)
     results = {}
 
-    for scene_name in ['hook', 'context', 'insight']:
-        prompt = broll_prompts.get(scene_name)
+    items = list((broll_prompts or {}).items())
+    if not items:
+        print("  No b-roll prompts provided")
+        return results
+
+    for scene_name, prompt in items:
         if not prompt:
             print(f"  Skipping {scene_name} — no prompt provided")
+            results[scene_name] = None
             continue
 
         output_path = os.path.join(output_dir, f'broll_{scene_name}.mp4')
@@ -163,7 +160,13 @@ def generate_broll(broll_prompts, output_dir):
         print(f"    Prompt: {prompt[:80]}...")
 
         try:
-            generate_single_clip(prompt, output_path)
+            generate_single_clip(
+                prompt,
+                output_path,
+                width=width,
+                height=height,
+                fps=fps,
+            )
             results[scene_name] = output_path
         except Exception as e:
             print(f"  WARNING: {scene_name} b-roll failed: {e}")

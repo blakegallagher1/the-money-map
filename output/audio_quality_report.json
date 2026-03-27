@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-03-27T11:08:02.682130",
+  "target_lufs": -16,
+  "target_true_peak_dbtp": -1.5,
+  "audio_path": "/Users/gallagherpropertycompany/Desktop/the-money-map/output/voiceover_normalized.wav",
+  "metrics": {
+    "integrated_lufs": "-17.05",
+    "true_peak_dbtp": "-1.48",
+    "lra": "2.60",
+    "threshold": "-27.59",
+    "target_offset": "0.44",
+    "measured": true
+  }
+}

@@ -8,13 +8,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+from config.settings import VIDEO_WIDTH, VIDEO_HEIGHT, FPS
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = REPO_ROOT / "output"
 SORA_DIR = REPO_ROOT / "assets" / "sora"
 IMAGE_DIR = OUTPUT_DIR / "imagegen"
-VIDEO_WIDTH = 1920
-VIDEO_HEIGHT = 1080
-FPS = 30
 IMAGE_SUFFIXES = (".png", ".webp", ".jpg", ".jpeg")
 
 

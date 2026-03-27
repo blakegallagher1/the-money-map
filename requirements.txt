@@ -8,3 +8,4 @@ lumaai>=0.2
 google-api-python-client>=2.100
 google-auth-oauthlib>=1.0
 google-auth-httplib2>=0.1
+num2words>=0.5

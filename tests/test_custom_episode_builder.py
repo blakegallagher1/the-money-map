@@ -6,7 +6,12 @@ import pytest
 
 from scripts.custom_episode_builder import build_full_script, color_for, load_episode_spec
 from scripts.episode_image_visuals import build_image_command
-from scripts.episode_visual_assets import section_visual_plan, still_video_filter
+from scripts.episode_visual_assets import (
+    VIDEO_HEIGHT,
+    VIDEO_WIDTH,
+    section_visual_plan,
+    still_video_filter,
+)
 from scripts.sora_episode_visuals import build_sora_command
 
 
@@ -46,7 +51,7 @@ def test_section_visual_plan_uses_broll_for_long_sections() -> None:
 def test_still_video_filter_adds_subtle_motion() -> None:
     """Still-image sections should use an animated crop instead of a static frame."""
     filter_graph = still_video_filter(12.5)
-    assert "crop=1920:1080" in filter_graph
+    assert f"crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}" in filter_graph
     assert "min(t/12.500,1)" in filter_graph
 
 

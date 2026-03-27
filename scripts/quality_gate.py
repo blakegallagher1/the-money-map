@@ -56,6 +56,16 @@ def _issue(code: str, severity: str, message: str, **meta: Any) -> dict[str, Any
     return issue
 
 
+def _load_json(path: Any) -> dict[str, Any]:
+    """Safely load a JSON file."""
+    if not _path_exists(path):
+        return {}
+    try:
+        return json.loads(Path(str(path)).read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
 def _check_text(value: str, label: str, required: bool = True) -> list[dict[str, Any]]:
     """Validate required text fields and minimum non-empty content."""
     issues: list[dict[str, Any]] = []
@@ -145,9 +155,14 @@ def run_quality_gate(
     *,
     previous_titles: list[str] | None = None,
     strict: bool = True,
+    min_word_count: int | None = None,
 ) -> dict[str, Any]:
-    """Run the publishability checks and return a structured report."""
+    """Run the publishability checks and return a structured report.
+
+    min_word_count: override default MIN_WORD_COUNT for this run (e.g. shorter legacy scripts).
+    """
     issues: list[dict[str, Any]] = []
+    word_floor = MIN_WORD_COUNT if min_word_count is None else int(min_word_count)
 
     title = script_data.get("title", "")
     description = script_data.get("description", "")
@@ -173,12 +188,13 @@ def run_quality_gate(
             )
         )
 
-    if len(script_text.split()) < MIN_WORD_COUNT:
+    wc = len(script_text.split())
+    if wc < word_floor:
         issues.append(
             _issue(
                 "short_script",
                 "error",
-                f"Script is too short ({len(script_text.split())} words).",
+                f"Script is too short ({wc} words; minimum {word_floor}).",
             )
         )
 
@@ -222,6 +238,136 @@ def run_quality_gate(
     if not _path_exists(artifact_paths.get("script_json_path")):
         issues.append(_issue("missing_script_artifact", "error", "Latest script JSON artifact missing."))
 
+    storyboard_path = artifact_paths.get("storyboard_path")
+    if not _path_exists(storyboard_path):
+        issues.append(
+            _issue(
+                "missing_storyboard",
+                "error",
+                "Storyboard manifest is missing.",
+            )
+        )
+    else:
+        storyboard = _load_json(storyboard_path)
+        beats = storyboard.get("beats", []) if isinstance(storyboard, dict) else []
+        if len(beats) < 8:
+            issues.append(
+                _issue(
+                    "thin_storyboard",
+                    "warning",
+                    f"Storyboard has only {len(beats)} beats; target is at least 8.",
+                )
+            )
+
+    voiceover_timeline_path = artifact_paths.get("voiceover_timeline_path")
+    if not _path_exists(voiceover_timeline_path):
+        issues.append(
+            _issue(
+                "missing_voiceover_timeline",
+                "error",
+                "Voiceover timing manifest is missing.",
+            )
+        )
+    else:
+        voiceover_timeline = _load_json(voiceover_timeline_path)
+        total_voiceover_duration = voiceover_timeline.get("duration_sec")
+        section_count = len(voiceover_timeline.get("sections", []))
+        if total_voiceover_duration in (None, ""):
+            issues.append(
+                _issue(
+                    "missing_voiceover_duration",
+                    "error",
+                    "Voiceover timing manifest is missing total duration.",
+                )
+            )
+        if section_count < len(REQUIRED_MARKERS):
+            issues.append(
+                _issue(
+                    "incomplete_voiceover_timeline",
+                    "error",
+                    f"Voiceover timing manifest only covers {section_count} sections.",
+                )
+            )
+        storyboard = _load_json(storyboard_path) if _path_exists(storyboard_path) else {}
+        storyboard_duration = storyboard.get("audio_duration_sec")
+        if (
+            total_voiceover_duration not in (None, "")
+            and storyboard_duration not in (None, "")
+            and abs(float(total_voiceover_duration) - float(storyboard_duration)) > 1.0
+        ):
+            issues.append(
+                _issue(
+                    "storyboard_timing_mismatch",
+                    "error",
+                    "Storyboard duration diverges from voiceover timing by more than one second.",
+                )
+            )
+
+    loudness_report_path = artifact_paths.get("audio_quality_report_path")
+    if not _path_exists(loudness_report_path):
+        issues.append(
+            _issue(
+                "missing_audio_quality_report",
+                "error",
+                "Missing LUFS/true-peak report artifact.",
+            )
+        )
+    else:
+        loudness = _load_json(loudness_report_path)
+        metrics = loudness.get("metrics", {}) if isinstance(loudness, dict) else {}
+        if metrics.get("integrated_lufs") in (None, ""):
+            issues.append(
+                _issue(
+                    "missing_lufs_metric",
+                    "error",
+                    "Audio quality report is missing integrated LUFS metric.",
+                )
+            )
+        if metrics.get("true_peak_dbtp") in (None, ""):
+            issues.append(
+                _issue(
+                    "missing_true_peak_metric",
+                    "error",
+                    "Audio quality report is missing true-peak metric.",
+                )
+            )
+
+    provenance_path = artifact_paths.get("music_provenance_path")
+    if not _path_exists(provenance_path):
+        issues.append(
+            _issue(
+                "missing_music_provenance",
+                "error",
+                "Missing music-license provenance tag artifact.",
+            )
+        )
+    else:
+        provenance = _load_json(provenance_path)
+        if not provenance.get("file_path"):
+            issues.append(
+                _issue(
+                    "missing_music_provenance_file_path",
+                    "error",
+                    "Music provenance must include file_path.",
+                )
+            )
+        if not provenance.get("license_id"):
+            issues.append(
+                _issue(
+                    "missing_music_provenance_license_id",
+                    "error",
+                    "Music provenance must include license_id.",
+                )
+            )
+        if not provenance.get("source"):
+            issues.append(
+                _issue(
+                    "missing_music_provenance_source",
+                    "error",
+                    "Music provenance must include source.",
+                )
+            )
+
     # Repetition checks
     previous = previous_titles or []
     if previous:
@@ -252,9 +398,12 @@ def run_quality_gate(
                 "required": sorted(REQUIRED_MARKERS),
                 "found": sorted(markers_found),
             },
-            "word_count": len(script_text.split()),
+            "word_count": wc,
+            "min_word_count": word_floor,
             "tag_count": len(tags),
             "has_research_dossier": bool(dossier),
+            "has_storyboard": _path_exists(storyboard_path),
+            "has_voiceover_timeline": _path_exists(voiceover_timeline_path),
         },
         "issues": issues,
         "strict": strict,
@@ -266,4 +415,3 @@ def quality_gate_report_path(result: dict[str, Any], run_dir: str | Path) -> str
     path = Path(run_dir) / "quality_gate.json"
     path.write_text(json.dumps(result, indent=2))
     return str(path)
-

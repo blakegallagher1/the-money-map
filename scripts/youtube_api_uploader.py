@@ -6,6 +6,7 @@ One-time browser auth for consent, then fully automated via refresh token.
 Supports upload, thumbnail, and scheduled publishing.
 """
 import json
+import argparse
 import os
 import sys
 import time
@@ -200,7 +201,18 @@ def schedule_publish(video_id, publish_at):
     print(f"  Video {video_id} scheduled for {publish_at}")
 
 
-if __name__ == "__main__":
+def main(argv=None):
+    """CLI entrypoint for validating auth setup and bootstrapping token."""
+    parser = argparse.ArgumentParser(
+        description="Validate YouTube uploader credentials and bootstrap OAuth token."
+    )
+    parser.add_argument(
+        "--no-auth",
+        action="store_true",
+        help="Only validate paths; do not launch browser OAuth flow.",
+    )
+    args = parser.parse_args(argv)
+
     print("YouTube API Uploader — The Money Map")
     print("=" * 40)
     print(f"Client secret: {YOUTUBE_CLIENT_SECRET_PATH}")
@@ -208,8 +220,9 @@ if __name__ == "__main__":
 
     if os.path.exists(YOUTUBE_TOKEN_PATH):
         print("Token exists — ready for automated uploads")
-    else:
-        print("No token found — first run will require browser auth")
+        return 0
+
+    print("No token found — first run will require browser auth")
 
     if not os.path.exists(YOUTUBE_CLIENT_SECRET_PATH):
         print("\nSETUP INSTRUCTIONS:")
@@ -219,3 +232,17 @@ if __name__ == "__main__":
         print(f"4. Save it to: {YOUTUBE_CLIENT_SECRET_PATH}")
         print("5. Enable YouTube Data API v3 in your project")
         print("6. Run this script again to authenticate")
+        return 1
+
+    if args.no_auth:
+        print("Auth flow skipped (--no-auth).")
+        return 0
+
+    print("Launching OAuth setup now...")
+    _get_authenticated_service()
+    print("OAuth setup complete — token saved.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -35,6 +35,60 @@ def shot_paths(slug: str, shot_id: str) -> tuple[Path, Path]:
     return out_dir / f"{shot_id}.mp4", out_dir / f"{shot_id}.json"
 
 
+def build_sora_command(
+    shot: dict[str, Any],
+    *,
+    model: str,
+    size: str,
+    timeout: int,
+    poll_interval: int,
+    video_path: Path,
+    json_path: Path,
+    force: bool,
+    dry_run: bool,
+) -> list[str]:
+    """Return a structured compatibility command for one Sora job."""
+    command = [
+        "python",
+        str(Path(__file__).resolve()),
+        "--prompt",
+        shot["prompt"],
+        "--model",
+        model,
+        "--size",
+        size,
+        "--timeout",
+        str(timeout),
+        "--poll-interval",
+        str(poll_interval),
+        "--video-path",
+        str(video_path),
+        "--json-path",
+        str(json_path),
+    ]
+    for key in (
+        "scene",
+        "subject",
+        "action",
+        "camera",
+        "lighting",
+        "palette",
+        "style",
+        "timing",
+        "audio",
+        "constraints",
+        "negative",
+    ):
+        value = shot.get(key)
+        if value:
+            command.extend([f"--{key.replace('_', '-')}", str(value)])
+    if force:
+        command.append("--force")
+    if dry_run:
+        command.append("--dry-run")
+    return command
+
+
 def build_augmented_prompt(shot: dict[str, Any]) -> str:
     """Build the structured prompt text for a shot."""
     parts = [f"Use case: {shot['use_case']}", f"Primary request: {shot['prompt']}"]

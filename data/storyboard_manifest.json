@@ -1,0 +1,427 @@
+{
+  "generated_at": "2026-03-27T11:07:55.622317",
+  "audio_duration_sec": 148.561,
+  "section_count": 8,
+  "beat_count": 21,
+  "scene_count": 6,
+  "scene_order": [
+    "cold_open",
+    "hook",
+    "chart_walk",
+    "context",
+    "insight",
+    "close"
+  ],
+  "scene_durations": {
+    "cold_open": 2.229,
+    "hook": 33.344,
+    "chart_walk": 17.972,
+    "context": 38.545,
+    "insight": 37.756,
+    "close": 18.715
+  },
+  "scene_ranges": {
+    "cold_open": {
+      "start_sec": 0.0,
+      "end_sec": 2.229
+    },
+    "hook": {
+      "start_sec": 2.229,
+      "end_sec": 35.573
+    },
+    "chart_walk": {
+      "start_sec": 35.573,
+      "end_sec": 53.545
+    },
+    "context": {
+      "start_sec": 53.545,
+      "end_sec": 92.09
+    },
+    "insight": {
+      "start_sec": 92.09,
+      "end_sec": 129.846
+    },
+    "close": {
+      "start_sec": 129.846,
+      "end_sec": 148.561
+    }
+  },
+  "sections": [
+    {
+      "id": "cold_open",
+      "text": "$37.6 trillion.",
+      "word_count": 2,
+      "duration_sec": 2.229,
+      "start_sec": 0.0,
+      "end_sec": 2.229,
+      "scene_name": "cold_open"
+    },
+    {
+      "id": "hook",
+      "text": "Federal Debt just risen 6.1 percent in a single year. That's one of the most dramatic shifts we've seen in recent economic data. In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.",
+      "word_count": 47,
+      "duration_sec": 15.836,
+      "start_sec": 2.229,
+      "end_sec": 18.065,
+      "scene_name": "hook"
+    },
+    {
+      "id": "the_number",
+      "text": "Right now, federal debt stands at $37.6 trillion. One year ago, it was at $35.5 trillion. That's a 6.1 percent increase in twelve months. To understand why that matters, you have to see the full picture. This chart shows the complete history.",
+      "word_count": 42,
+      "duration_sec": 17.508,
+      "start_sec": 18.065,
+      "end_sec": 35.573,
+      "scene_name": "hook"
+    },
+    {
+      "id": "chart_walk",
+      "text": "Watch how federal debt has moved over the past decade. You can see periods of stability... periods of gradual change... and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points. The data is moving faster than at almost any point in the last ten years.",
+      "word_count": 55,
+      "duration_sec": 17.972,
+      "start_sec": 35.573,
+      "end_sec": 53.545,
+      "scene_name": "chart_walk"
+    },
+    {
+      "id": "context",
+      "text": "But federal debt doesn't exist in isolation. To understand the full story, we need to look at what's connected. Federal Funds Rate is currently at 3.6 percent... that's down 15.9 percent year over year. 10-Year Treasury Yield is currently at 4.0 percent. GDP Growth Rate is currently at 1.4 percent... that's down 26.3 percent year over year.",
+      "word_count": 57,
+      "duration_sec": 24.288,
+      "start_sec": 53.545,
+      "end_sec": 77.833,
+      "scene_name": "context"
+    },
+    {
+      "id": "connected_data",
+      "text": "When you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces... each one reinforcing the others. And together, they tell a story that's more complex than any single headline.",
+      "word_count": 37,
+      "duration_sec": 14.257,
+      "start_sec": 77.833,
+      "end_sec": 92.09,
+      "scene_name": "context"
+    },
+    {
+      "id": "insight",
+      "text": "To put this in perspective, $37.6 trillion divided among every American means each person... including children... owes roughly $112,000. A family of four carries $448,000 in national debt. Now, government debt isn't like personal debt. Countries don't pay it off the same way you pay off a credit card. But the interest payments alone are now over $1 trillion per year... more than we spend on defense. Every dollar going to interest is a dollar not going to infrastructure, education, or healthcare. And with rates still elevated, that interest bill is only growing.",
+      "word_count": 93,
+      "duration_sec": 37.756,
+      "start_sec": 92.09,
+      "end_sec": 129.846,
+      "scene_name": "insight"
+    },
+    {
+      "id": "close",
+      "text": "That's the story behind federal debt right now. The data doesn't lie... and it often tells us things months before the headlines catch up. If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one.",
+      "word_count": 61,
+      "duration_sec": 18.715,
+      "start_sec": 129.846,
+      "end_sec": 148.561,
+      "scene_name": "close"
+    }
+  ],
+  "beats": [
+    {
+      "id": "cold_open_beat_1",
+      "section_id": "cold_open",
+      "scene_name": "cold_open",
+      "text": "$37.6 trillion.",
+      "word_count": 2,
+      "start_sec": 0.0,
+      "end_sec": 2.229,
+      "duration_sec": 2.229,
+      "dataviz_start_sec": 0.0,
+      "dataviz_end_sec": 2.229,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "hook_beat_1",
+      "section_id": "hook",
+      "scene_name": "hook",
+      "text": "Federal Debt just risen 6.1 percent in a single year.",
+      "word_count": 10,
+      "start_sec": 2.229,
+      "end_sec": 5.598,
+      "duration_sec": 3.369,
+      "dataviz_start_sec": 2.229,
+      "dataviz_end_sec": 5.598,
+      "visual_type": "broll",
+      "asset_key": "hook_broll_1"
+    },
+    {
+      "id": "hook_beat_2",
+      "section_id": "hook",
+      "scene_name": "hook",
+      "text": "That's one of the most dramatic shifts we've seen in recent economic data.",
+      "word_count": 13,
+      "start_sec": 5.598,
+      "end_sec": 9.978,
+      "duration_sec": 4.38,
+      "dataviz_start_sec": 5.598,
+      "dataviz_end_sec": 9.978,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "hook_beat_3",
+      "section_id": "hook",
+      "scene_name": "hook",
+      "text": "In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data.",
+      "word_count": 24,
+      "start_sec": 9.978,
+      "end_sec": 18.065,
+      "duration_sec": 8.087,
+      "dataviz_start_sec": 9.978,
+      "dataviz_end_sec": 18.065,
+      "visual_type": "broll",
+      "asset_key": "hook_broll_2"
+    },
+    {
+      "id": "the_number_beat_1",
+      "section_id": "the_number",
+      "scene_name": "hook",
+      "text": "Right now, federal debt stands at $37.6 trillion. One year ago, it was at $35.5 trillion.",
+      "word_count": 16,
+      "start_sec": 18.065,
+      "end_sec": 24.735,
+      "duration_sec": 6.67,
+      "dataviz_start_sec": 18.065,
+      "dataviz_end_sec": 24.735,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "the_number_beat_2",
+      "section_id": "the_number",
+      "scene_name": "hook",
+      "text": "That's a 6.1 percent increase in twelve months. To understand why that matters, you have to see the full picture.",
+      "word_count": 20,
+      "start_sec": 24.735,
+      "end_sec": 33.072,
+      "duration_sec": 8.337,
+      "dataviz_start_sec": 24.735,
+      "dataviz_end_sec": 33.072,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "the_number_beat_3",
+      "section_id": "the_number",
+      "scene_name": "hook",
+      "text": "This chart shows the complete history.",
+      "word_count": 6,
+      "start_sec": 33.072,
+      "end_sec": 35.573,
+      "duration_sec": 2.501,
+      "dataviz_start_sec": 33.072,
+      "dataviz_end_sec": 35.573,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "chart_walk_beat_1",
+      "section_id": "chart_walk",
+      "scene_name": "chart_walk",
+      "text": "Watch how federal debt has moved over the past decade. You can see periods of stability. periods of gradual change.",
+      "word_count": 20,
+      "start_sec": 35.573,
+      "end_sec": 42.108,
+      "duration_sec": 6.535,
+      "dataviz_start_sec": 35.573,
+      "dataviz_end_sec": 42.108,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "chart_walk_beat_2",
+      "section_id": "chart_walk",
+      "scene_name": "chart_walk",
+      "text": "and then these sharp inflection points where everything accelerates. The move we're seeing now is one of those inflection points.",
+      "word_count": 20,
+      "start_sec": 42.108,
+      "end_sec": 48.643,
+      "duration_sec": 6.535,
+      "dataviz_start_sec": 42.108,
+      "dataviz_end_sec": 48.643,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "chart_walk_beat_3",
+      "section_id": "chart_walk",
+      "scene_name": "chart_walk",
+      "text": "The data is moving faster than at almost any point in the last ten years.",
+      "word_count": 15,
+      "start_sec": 48.643,
+      "end_sec": 53.545,
+      "duration_sec": 4.902,
+      "dataviz_start_sec": 48.643,
+      "dataviz_end_sec": 53.545,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "context_beat_1",
+      "section_id": "context",
+      "scene_name": "context",
+      "text": "But federal debt doesn't exist in isolation. To understand the full story, we need to look at what's connected.",
+      "word_count": 19,
+      "start_sec": 53.545,
+      "end_sec": 61.641,
+      "duration_sec": 8.096,
+      "dataviz_start_sec": 53.545,
+      "dataviz_end_sec": 61.641,
+      "visual_type": "broll",
+      "asset_key": "context_broll_1"
+    },
+    {
+      "id": "context_beat_2",
+      "section_id": "context",
+      "scene_name": "context",
+      "text": "Federal Funds Rate is currently at 3.6 percent. that's down 15.9 percent year over year.",
+      "word_count": 15,
+      "start_sec": 61.641,
+      "end_sec": 68.033,
+      "duration_sec": 6.392,
+      "dataviz_start_sec": 61.641,
+      "dataviz_end_sec": 68.033,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "context_beat_3",
+      "section_id": "context",
+      "scene_name": "context",
+      "text": "10-Year Treasury Yield is currently at 4.0 percent. GDP Growth Rate is currently at 1.4 percent. that's down 26.3 percent year over year.",
+      "word_count": 23,
+      "start_sec": 68.033,
+      "end_sec": 77.833,
+      "duration_sec": 9.8,
+      "dataviz_start_sec": 68.033,
+      "dataviz_end_sec": 77.833,
+      "visual_type": "broll",
+      "asset_key": "context_broll_2"
+    },
+    {
+      "id": "connected_data_beat_1",
+      "section_id": "connected_data",
+      "scene_name": "context",
+      "text": "When you put these numbers side by side, a clear picture emerges. These aren't random fluctuations. They're interconnected forces.",
+      "word_count": 19,
+      "start_sec": 77.833,
+      "end_sec": 85.154,
+      "duration_sec": 7.321,
+      "dataviz_start_sec": 77.833,
+      "dataviz_end_sec": 85.154,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "connected_data_beat_2",
+      "section_id": "connected_data",
+      "scene_name": "context",
+      "text": "each one reinforcing the others. And together, they tell a story that's more complex than any single headline.",
+      "word_count": 18,
+      "start_sec": 85.154,
+      "end_sec": 92.09,
+      "duration_sec": 6.936,
+      "dataviz_start_sec": 85.154,
+      "dataviz_end_sec": 92.09,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "insight_beat_1",
+      "section_id": "insight",
+      "scene_name": "insight",
+      "text": "To put this in perspective, $37.6 trillion divided among every American means each person. including children. owes roughly $112,000.",
+      "word_count": 19,
+      "start_sec": 92.09,
+      "end_sec": 99.804,
+      "duration_sec": 7.714,
+      "dataviz_start_sec": 92.09,
+      "dataviz_end_sec": 99.804,
+      "visual_type": "broll",
+      "asset_key": "insight_broll_1"
+    },
+    {
+      "id": "insight_beat_2",
+      "section_id": "insight",
+      "scene_name": "insight",
+      "text": "A family of four carries $448,000 in national debt. Now, government debt isn't like personal debt.",
+      "word_count": 16,
+      "start_sec": 99.804,
+      "end_sec": 106.3,
+      "duration_sec": 6.496,
+      "dataviz_start_sec": 99.804,
+      "dataviz_end_sec": 106.3,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "insight_beat_3",
+      "section_id": "insight",
+      "scene_name": "insight",
+      "text": "Countries don't pay it off the same way you pay off a credit card. But the interest payments alone are now over $1 trillion per year. more than we spend on defense. Every dollar going to interest is a dollar not going to infrastructure, education, or healthcare. And with rates still elevated, that interest bill is only growing.",
+      "word_count": 58,
+      "start_sec": 106.3,
+      "end_sec": 129.846,
+      "duration_sec": 23.546,
+      "dataviz_start_sec": 106.3,
+      "dataviz_end_sec": 129.846,
+      "visual_type": "broll",
+      "asset_key": "insight_broll_2"
+    },
+    {
+      "id": "close_beat_1",
+      "section_id": "close",
+      "scene_name": "close",
+      "text": "That's the story behind federal debt right now. The data doesn't lie.",
+      "word_count": 12,
+      "start_sec": 129.846,
+      "end_sec": 133.528,
+      "duration_sec": 3.682,
+      "dataviz_start_sec": 129.846,
+      "dataviz_end_sec": 133.528,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "close_beat_2",
+      "section_id": "close",
+      "scene_name": "close",
+      "text": "and it often tells us things months before the headlines catch up.",
+      "word_count": 12,
+      "start_sec": 133.528,
+      "end_sec": 137.21,
+      "duration_sec": 3.682,
+      "dataviz_start_sec": 133.528,
+      "dataviz_end_sec": 137.21,
+      "visual_type": "dataviz",
+      "asset_key": null
+    },
+    {
+      "id": "close_beat_3",
+      "section_id": "close",
+      "scene_name": "close",
+      "text": "If you want to see more data-driven breakdowns like this, subscribe and turn on notifications. Every week, we track the numbers that actually shape the American economy. I'm The Money Map. See you in the next one.",
+      "word_count": 37,
+      "start_sec": 137.21,
+      "end_sec": 148.561,
+      "duration_sec": 11.351,
+      "dataviz_start_sec": 137.21,
+      "dataviz_end_sec": 148.561,
+      "visual_type": "dataviz",
+      "asset_key": null
+    }
+  ],
+  "broll_prompts": {
+    "hook_broll_1": "Dramatic wide shot of the U.S. Capitol building at dusk with dark storm clouds gathering overhead, American flag waving, cinematic lighting, photorealistic Establish emotional stakes immediately with human-scale context. Narration beat: Federal Debt just risen 6.1 percent in a single year. Topic anchor: Federal Debt at 37637553.0 millions $. Photorealistic documentary cinematography, realistic lighting, 16:9, no text, no logos, no watermarks, no infographic overlays.",
+    "hook_broll_2": "Dramatic wide shot of the U.S. Capitol building at dusk with dark storm clouds gathering overhead, American flag waving, cinematic lighting, photorealistic Establish emotional stakes immediately with human-scale context. Narration beat: In this episode, we're going to break down exactly what's happening, what's driving it, and what it means for you. Let's follow the data. Topic anchor: Federal Debt at 37637553.0 millions $. Photorealistic documentary cinematography, realistic lighting, 16:9, no text, no logos, no watermarks, no infographic overlays.",
+    "context_broll_1": "Close-up of hundred dollar bills being printed on a high-speed printing press, crisp detail, industrial setting, photorealistic documentary style Show causal forces, infrastructure, institutions, or market mechanics. Narration beat: But federal debt doesn't exist in isolation. To understand the full story, we need to look at what's connected. Topic anchor: Federal Debt at 37637553.0 millions $. Photorealistic documentary cinematography, realistic lighting, 16:9, no text, no logos, no watermarks, no infographic overlays.",
+    "context_broll_2": "Close-up of hundred dollar bills being printed on a high-speed printing press, crisp detail, industrial setting, photorealistic documentary style Show causal forces, infrastructure, institutions, or market mechanics. Narration beat: 10-Year Treasury Yield is currently at 4.0 percent. GDP Growth Rate is currently at 1.4 percent. that's down 26.3 percent year over year. Topic anchor: Federal Debt at 37637553.0 millions $. Photorealistic documentary cinematography, realistic lighting, 16:9, no text, no logos, no watermarks, no infographic overlays.",
+    "insight_broll_1": "Wide shot of a massive digital debt clock display showing trillions, red numbers glowing against a dark urban building facade at night, photorealistic Show concrete household or investor consequences in the real world. Narration beat: To put this in perspective, $37.6 trillion divided among every American means each person. including children. owes roughly $112,000. Topic anchor: Federal Debt at 37637553.0 millions $. Photorealistic documentary cinematography, realistic lighting, 16:9, no text, no logos, no watermarks, no infographic overlays.",
+    "insight_broll_2": "Wide shot of a massive digital debt clock display showing trillions, red numbers glowing against a dark urban building facade at night, photorealistic Show concrete household or investor consequences in the real world. Narration beat: Countries don't pay it off the same way you pay off a credit card. But the interest payments alone are now over $1 trillion per year. more than we spend on defense. Every dollar going to interest is a dollar not going to infrastructure, education, or healthcare. And with rates still elevated, that interest bill is only growing. Topic anchor: Federal Debt at 37637553.0 millions $. Photorealistic documentary cinematography, realistic lighting, 16:9, no text, no logos, no watermarks, no infographic overlays."
+  }
+}

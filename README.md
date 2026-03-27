@@ -7,7 +7,9 @@ Fully automated YouTube channel that turns Federal Reserve economic data into ci
 ```
 FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover (TTS)
                                                     ↓
-                              Enhanced Renderer → AI B-Roll → Final Assembly → YouTube
+                               Storyboard Timeline → Enhanced Renderer → AI B-Roll
+                                                    ↓
+                                   Final Assembly → Quality Gate → YouTube
 ```
 
 ## Pipeline Modules
@@ -18,6 +20,7 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 | Story Discovery | `scripts/story_discovery.py` | Scores each metric for viral potential, picks top story |
 | Script Writer V1 | `scripts/script_writer.py` | ~250 word scripts (~1:30 videos) |
 | Script Writer V2 | `scripts/enhanced_script_writer.py` | ~400-420 word scripts with section markers & b-roll cues |
+| Storyboard Planner | `scripts/storyboard_planner.py` | Builds beat-level storyboard timelines from script sections and real narration timing |
 | Renderer V1 | `scripts/render_pilot.py` | Basic 5fps matplotlib → 30fps video |
 | Renderer V2 | `scripts/enhanced_renderer.py` | Cinematic renderer with glowing effects, animated counters, Ken Burns zoom, particle effects |
 | Thumbnail V1 | `scripts/thumbnail_gen.py` | Basic stat-focused thumbnails |
@@ -43,7 +46,7 @@ FRED API → Data Ingestion → Story Discovery → Script Writer → Voiceover 
 
 - **Data**: FRED API (Federal Reserve Economic Data) — 34 curated series
 - **Visualization**: matplotlib (1920x1080, 10fps render → 30fps output)
-- **Voiceover**: AI TTS (Gemini, "charon" voice — calm professional male)
+- **Voiceover**: ElevenLabs / OpenAI TTS with section-timed narration manifests
 - **B-Roll**: AI-generated cinematic video clips (15 clips across 5 episodes)
 - **Assembly**: ffmpeg (concatenation, voiceover mixing)
 - **Thumbnails**: matplotlib (1280x720, high-CTR design)
@@ -118,6 +121,12 @@ python .codex/skills/money-map-openai-cua/scripts/run_cua_task.py \
 Custom narrated episodes write their combined script to `data/<slug>/voiceover_script.txt`,
 their final voiceover MP3 to `data/<slug>/voiceover.mp3`, and their final video to
 `output/<slug>.mp4`. Generated still-image visuals land under `output/imagegen/<slug>/`.
+
+Main pipeline runs now also emit:
+
+- `data/voiceover_timeline.json` — exact per-section narration timings from the synthesized voiceover
+- `data/storyboard_manifest.json` — beat-level visual plan with scene durations and b-roll slots
+- `data/quality_gate.json` — publishability report including storyboard/timeline checks
 
 ## License
 

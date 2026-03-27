@@ -2,6 +2,45 @@
 
 ## Active Sprint
 
+### [x] Main Pipeline Storyboard Timeline Upgrade
+- **Goal**: Upgrade the main FRED pipeline from section-level timing heuristics to an audio-first storyboard/timeline system that improves visual pacing and sync
+- **Branch**: `feat/storyboard-timeline-upgrade`
+- **Specs**:
+  - Preserve the existing research -> script -> voiceover -> render -> assemble -> upload flow.
+  - Add a reusable storyboard/timeline manifest derived from the script and real narration timing.
+  - Expand visual planning beyond three coarse b-roll slots into beat-level visual segments.
+  - Reuse the narrated-episode pattern where visuals are built to actual audio duration rather than word-count estimates.
+  - Extend quality gating so timeline/storyboard defects can block publish.
+- **Steps**:
+  - [x] Inspect current dirty pipeline diffs and align the write scope
+  - [x] Add storyboard planning + timing helpers with deterministic tests
+  - [x] Thread storyboard/timeline artifacts through orchestrator, TTS, render, and final assembly
+  - [x] Add quality-gate checks for storyboard density and timing coverage
+  - [x] Run targeted verification, rerun the repo test suite, and ship the branch
+- **Verification**:
+  - [x] Baseline `git status --short` captured
+  - [x] Baseline `python -m pytest -q` captured with pre-existing collection failure in `tests/test_custom_episode_builder.py`
+  - [x] Targeted pytest slices for new storyboard/timeline behavior pass
+  - [x] Full `python -m pytest -q` rerun captured and now passes
+  - [x] Real pipeline exercise completed via `python scripts/orchestrator.py --step voiceover --no-upload --quality-tier 1080 --force-voiceover --min-words 350`
+- **Status**: complete
+- **Review**: Added `scripts/storyboard_planner.py` to derive beat-level timelines from ordered script sections plus real voiceover timings, upgraded `scripts/tts_generator.py` to synthesize section-timed narration and persist `data/voiceover_timeline.json`, threaded `data/storyboard_manifest.json` through orchestrator/render/assembly so render scene lengths now follow actual narration instead of word-count heuristics, generalized b-roll planning to multiple storyboard clip slots, and extended the quality gate to require storyboard/timing artifacts. Verification passed with `python -m py_compile scripts/*.py`, a 48-test targeted media pipeline slice, a full `python -m pytest -q` run (`57 passed`), and a real no-upload pipeline build that produced fresh `output/voiceover.wav`, `output/latest_v2_final.mp4`, `output/latest_final.mp4`, `output/thumbnail.png`, `data/voiceover_timeline.json`, `data/storyboard_manifest.json`, and a passing `data/quality_gate.json`.
+
+### [x] Video Quality Upgrade Analysis
+- **Goal**: Analyze the current automated pipeline and identify the single highest-impact quality upgrade now that ElevenLabs voiceover and direct YouTube publishing are available
+- **Branch**: `main`
+- **Steps**:
+  - [x] Review current pipeline instructions, memory, and dirty worktree state
+  - [x] Trace script, TTS, render, assembly, quality gate, and upload flows
+  - [x] Compare current capabilities against the strongest missing quality layer
+  - [x] Record the recommendation and supporting code evidence
+- **Verification**:
+  - [x] Baseline `git status --short` captured
+  - [x] Baseline `python -m pytest -q` captured with pre-existing collection failure in `tests/test_custom_episode_builder.py`
+  - [x] Core pipeline modules and tests reviewed (`llm_script_writer`, `tts_generator`, `enhanced_renderer`, `final_assembly`, `quality_gate`, `custom_episode_builder`)
+- **Status**: complete
+- **Review**: The biggest quality bottleneck is no longer voice or publishing infrastructure; it is the lack of a beat-level storyboard and timing system in the main pipeline. The current flow still asks the LLM for only three b-roll prompts, generates only three clips, and assembles them at coarse section boundaries while render timing is estimated from word counts instead of real narration duration. The custom narrated-episode path already proves the better pattern in-repo: generate section audio first, derive exact durations from audio, and build the visual sequence to match that timing. The recommended next upgrade is to port that pattern into the main FRED pipeline as a storyboard/timeline layer that expands each episode into timed visual beats and assembles visuals against actual voiceover timings.
+
 ### [ ] OpenAI CUA Skill For Money Map
 - **Goal**: Create a repo-local Codex skill that uses the current OpenAI Computer Use Agent workflow to perform browser-driven tasks for `the-money-map`
 - **Branch**: `main`

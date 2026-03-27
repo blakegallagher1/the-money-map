@@ -1,6 +1,6 @@
 """
 Enhanced Cinematic Renderer for The Money Map V2
-Produces high-quality 1920x1080 data-viz videos with:
+Produces high-quality data-viz videos with configurable output resolution:
 - Smooth animated counters 
 - Glowing accent effects
 - Ken Burns zoom on charts
@@ -27,15 +27,24 @@ import sys
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
-from config.settings import COLORS, FRED_SERIES
+from config.settings import COLORS, FRED_SERIES, VIDEO_WIDTH, VIDEO_HEIGHT, FPS
 from scripts.data_ingestion import FREDClient
 
 BASE = PROJECT_ROOT
 
 # Global render settings
-RENDER_FPS = 30  # Native 30fps rendering
-W, H = 19.2, 10.8  # Figure size (1920x1080 at 100dpi)
+RENDER_FPS = FPS  # Native render fps follows configured quality profile
 DPI = 100
+W = VIDEO_WIDTH / DPI
+H = VIDEO_HEIGHT / DPI
+
+
+def set_render_geometry(width, height, fps=30):
+    """Update global render geometry for this process."""
+    global W, H, RENDER_FPS
+    W = width / DPI
+    H = height / DPI
+    RENDER_FPS = fps
 
 plt.rcParams.update({
     'figure.facecolor': COLORS['bg_dark'],
@@ -154,8 +163,33 @@ def calculate_scene_durations(script_data):
     return durations
 
 
-def frames_to_video(frame_dir, output_path, fps=RENDER_FPS):
+def scene_durations_from_section_durations(section_durations):
+    """Aggregate section durations into the renderer's scene structure."""
+    hook_duration = float(section_durations.get('hook', 0.0)) + float(
+        section_durations.get('the_number', 0.0)
+    )
+    context_duration = float(section_durations.get('context', 0.0)) + float(
+        section_durations.get('connected_data', 0.0)
+    )
+    durations = {
+        'cold_open': float(section_durations.get('cold_open', 6.0)),
+        'hook': hook_duration or 18.0,
+        'chart_walk': float(section_durations.get('chart_walk', 55.0)),
+        'context': context_duration or 40.0,
+        'insight': float(section_durations.get('insight', 35.0)),
+        'close': float(section_durations.get('close', 12.0)),
+    }
+    return {key: round(value, 3) for key, value in durations.items()}
+
+
+def _frame_count(duration_sec):
+    """Convert a scene duration to an integer frame count."""
+    return max(1, int(round(float(duration_sec) * RENDER_FPS)))
+
+
+def frames_to_video(frame_dir, output_path, fps=None):
     """Convert frames to video with ffmpeg."""
+    fps = fps or RENDER_FPS
     subprocess.run([
         "ffmpeg", "-y", "-framerate", str(fps), "-i",
         os.path.join(frame_dir, "frame_%04d.png"),
@@ -184,7 +218,7 @@ def render_scene_cold_open(script_data, base_dir, duration_sec=6):
     elif unit == 'billions $': target_str = f"${val/1000:.1f}T" if val >= 1000 else f"${val:,.0f}B"
     else: target_str = f"{val:,.1f}"
     
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -267,7 +301,7 @@ def render_scene_hook(script_data, base_dir, duration_sec=18):
     elif unit == 'billions $': display_val = f"${val/1000:.1f}T" if val >= 1000 else f"${val:,.0f}B"
     else: display_val = f"{val:,.1f}"
     
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -364,7 +398,7 @@ def render_scene_chart(script_data, base_dir, duration_sec=55):
     ymin = min(vals_raw) * 0.92
     ymax = max(vals_raw) * 1.08
     
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -482,7 +516,7 @@ def render_scene_context(script_data, base_dir, duration_sec=40):
     
     colors = [COLORS['accent_teal'], COLORS['accent_blue'], COLORS['accent_coral'], COLORS['accent_amber']]
     
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -586,7 +620,7 @@ def render_scene_insight(script_data, base_dir, duration_sec=35):
     if len(key_line) > 100:
         key_line = key_line[:97] + '...'
     
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -664,7 +698,7 @@ def render_scene_close(script_data, base_dir, duration_sec=12):
     os.makedirs(d, exist_ok=True)
     
     accent = COLORS['accent_teal']
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -718,7 +752,7 @@ def render_broll_placeholder(base_dir, broll_name, duration_sec=6, accent_color=
     os.makedirs(d, exist_ok=True)
     
     accent = accent_color or COLORS['accent_teal']
-    n_frames = duration_sec * RENDER_FPS
+    n_frames = _frame_count(duration_sec)
     
     for i in range(n_frames):
         p = i / (n_frames - 1)
@@ -738,7 +772,15 @@ def render_broll_placeholder(base_dir, broll_name, duration_sec=6, accent_color=
     return out
 
 
-def render_episode(ep_num, script_path, output_dir):
+def render_episode(
+    ep_num,
+    script_path,
+    output_dir,
+    width=VIDEO_WIDTH,
+    height=VIDEO_HEIGHT,
+    fps=FPS,
+    scene_durations=None,
+):
     """Render a complete enhanced episode."""
     print(f"\n{'='*60}")
     print(f"RENDERING EPISODE {ep_num}")
@@ -747,7 +789,9 @@ def render_episode(ep_num, script_path, output_dir):
     with open(script_path) as f:
         script_data = json.load(f)
     
+    set_render_geometry(width, height, fps=fps)
     print(f"Title: {script_data['title']}")
+    print(f"Render profile: {width}x{height} @ {fps}fps")
     
     ep_id = str(ep_num)
     ep_prefix = f"ep{ep_id}" if ep_id.isdigit() else ep_id
@@ -755,7 +799,7 @@ def render_episode(ep_num, script_path, output_dir):
     os.makedirs(base_dir, exist_ok=True)
     
     # Calculate dynamic scene durations based on script word counts
-    durations = calculate_scene_durations(script_data)
+    durations = scene_durations or calculate_scene_durations(script_data)
 
     # Render all scenes with dynamic durations
     scenes = []
