@@ -2,6 +2,27 @@
 
 ## Active Sprint
 
+### [x] Refresh Unpublished Draft Video Scripts
+- **Goal**: Update the saved unpublished episode drafts so their scripts and metric facts reflect live data as of 2026-03-27
+- **Branch**: `feat/storyboard-timeline-upgrade`
+- **Specs**:
+  - Refresh only versioned draft episode scripts under `data/ep*_v2/`.
+  - Treat a script as already published only when its exact title appears in `data/episode_history.json` with a non-empty `video_url`.
+  - Rebuild each unpublished draft from fresh FRED data while preserving its original primary metric/topic.
+  - Persist updated `script.json` plus sibling `voiceover_script.txt`, and save a machine-readable refresh report.
+- **Steps**:
+  - [x] Inspect draft script inventory and current publish history
+  - [x] Add a repeatable refresh utility plus deterministic tests
+  - [x] Run the refresh against live data and update the affected draft assets
+  - [x] Verify the updated scripts, rerun the test suite, and ship the branch
+- **Verification**:
+  - [x] Baseline `python -m pytest -q` captured (`57 passed`)
+  - [x] Targeted pytest slice for unpublished-script refresh logic passes (`python -m pytest -q tests/test_refresh_unpublished_scripts.py`)
+  - [x] Full `python -m pytest -q` rerun passes after the refresh (`61 passed`)
+  - [x] Refresh report confirms the draft scripts were regenerated from current data (`data/refresh_reports/20260327-114857-unpublished-scripts.json`)
+- **Status**: complete
+- **Review**: Added `scripts/refresh_unpublished_scripts.py` to refresh versioned unpublished draft scripts in place from a live FRED pull while preserving each draft's primary metric, wrote `tests/test_refresh_unpublished_scripts.py` for draft selection and artifact sync behavior, updated `README.md` with the new operator command, refreshed `data/latest_data.json`, and regenerated the unpublished drafts at `data/ep1_v2/`, `data/ep2_v2/`, `data/ep4_v2/`, and `data/ep5_v2/` plus their sibling `voiceover_script.txt` files. The 2026-03-27 refresh also saved current research dossiers under `data/dossiers/` and the machine-readable summary at `data/refresh_reports/20260327-114857-unpublished-scripts.json`.
+
 ### [x] Main Pipeline Storyboard Timeline Upgrade
 - **Goal**: Upgrade the main FRED pipeline from section-level timing heuristics to an audio-first storyboard/timeline system that improves visual pacing and sync
 - **Branch**: `feat/storyboard-timeline-upgrade`

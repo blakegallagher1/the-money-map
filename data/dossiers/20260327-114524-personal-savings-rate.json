@@ -1,0 +1,31 @@
+{
+  "summary": "The Personal Savings Rate at 4.5% is low by recent historical standards and down 11.76% year over year, making it a timely signal for how stretched household finances may be. With consumption still resilient and consumer credit levels elevated, this metric matters now because it can reveal whether spending strength is sustainable or increasingly debt-funded.",
+  "angle": "Frame the story as: the real risk is not that consumers suddenly stop spending, but that markets and policymakers may be underestimating how long households can mask financial stress by substituting savings with credit.",
+  "watch_outs": [
+    "Avoid over-hyping a single low savings print as proof that a consumer collapse is imminent; households can draw down savings for multiple benign and non-benign reasons.",
+    "Do not imply a simple causal chain from lower savings rate to recession without showing how consumption, wages, inflation, and credit conditions interact.",
+    "Avoid weak sourcing or stale comparisons; use official BEA data and pair it with current consumer credit, income, and spending releases."
+  ],
+  "source_list": [
+    "U.S. Bureau of Economic Analysis (Personal Income and Outlays)",
+    "Federal Reserve G.19 Consumer Credit release",
+    "U.S. Census Bureau and/or FRED for Median Household Income context",
+    "Bureau of Labor Statistics for CPI and real wage context",
+    "Federal Reserve Bank of New York Household Debt and Credit Report"
+  ],
+  "novelty": "Differentiate the episode by treating the savings rate not as a standalone fear gauge, but as part of a three-part household financing stack: income, savings drawdown, and credit expansion. Comparing the savings rate directly against personal consumption growth and consumer credit can make the piece more nuanced than typical 'consumer is tapped out' videos.",
+  "disclosed_synthetic_content": false,
+  "title_variants": [
+    "America\u2019s Savings Rate Is Falling: How Long Can Consumers Keep Spending?",
+    "The 4.5% Warning Light in the U.S. Economy",
+    "Consumers Look Strong, But the Savings Rate Tells a Different Story"
+  ],
+  "hook_directions": [
+    "Open with: 'If Americans are still spending, why is the personal savings rate near uncomfortable levels?' then reveal the savings-versus-credit tradeoff.",
+    "Start with a contrast: 'The consumer looks healthy on the surface, but one number suggests the cushion underneath is getting thinner.'",
+    "Lead with a myth-bust: 'A low savings rate does not automatically mean recession tomorrow, but it can show who is financing the economy and how.'"
+  ],
+  "confidence": 0.89,
+  "model": "gpt-5.4",
+  "generated_at": "2026-03-27T11:45:24.111853"
+}

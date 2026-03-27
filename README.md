@@ -93,6 +93,9 @@ python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortre
 python scripts/sora_episode_visuals.py --plan data/cre_balance_sheet_fortress/sora_shots.json
 python scripts/custom_episode_builder.py --episode data/cre_balance_sheet_fortress/episode.json
 
+# Refresh unpublished versioned draft scripts from live FRED data
+python scripts/refresh_unpublished_scripts.py
+
 # Just render enhanced episode N
 python scripts/enhanced_renderer.py N
 
@@ -127,6 +130,10 @@ Main pipeline runs now also emit:
 - `data/voiceover_timeline.json` — exact per-section narration timings from the synthesized voiceover
 - `data/storyboard_manifest.json` — beat-level visual plan with scene durations and b-roll slots
 - `data/quality_gate.json` — publishability report including storyboard/timeline checks
+
+Draft script refresh runs also emit:
+
+- `data/refresh_reports/<timestamp>-unpublished-scripts.json` — machine-readable summary of which draft scripts were regenerated and which current metric values were written
 
 ## License
 

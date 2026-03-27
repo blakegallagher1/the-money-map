@@ -1,0 +1,31 @@
+{
+  "summary": "Regular gas prices near $3.96 per gallon and up 25.35% year over year make fuel costs newly salient for households, especially because drivers notice gasoline more frequently than most inflation categories. The topic is current because gas often acts as a real-time public barometer for inflation, consumer mood, and political pressure even when broader price trends look mixed.",
+  "angle": "Frame gas prices not just as an energy story, but as the fastest-moving 'inflation billboard' that can reshape consumer sentiment and spending behavior before official inflation narratives catch up.",
+  "watch_outs": [
+    "Avoid over-hyping a single gasoline move into a full inflation resurgence without showing how core and headline CPI differ.",
+    "Avoid claiming gas prices alone cause changes in consumer sentiment or election outcomes; present them as a visible contributor among several forces.",
+    "Avoid weak sourcing or national-average simplification; distinguish between AAA pump prices, EIA retail series, oil benchmarks, refining spreads, and regional variation."
+  ],
+  "source_list": [
+    "AAA national and state gas price averages",
+    "U.S. Energy Information Administration (EIA) gasoline and petroleum status data",
+    "Bureau of Labor Statistics CPI Energy and headline CPI releases",
+    "University of Michigan Consumer Sentiment survey",
+    "Brent and WTI crude price data from major market data providers"
+  ],
+  "novelty": "Differentiate the episode by showing how gasoline functions as a high-frequency behavioral signal rather than merely a commodity price: compare pump-price visibility with broader CPI baskets, highlight regional refinery and seasonal effects, and test whether sentiment reacts more to gas than to less-visible categories.",
+  "disclosed_synthetic_content": false,
+  "title_variants": [
+    "Why $4 Gas Still Hits Harder Than the Inflation Report",
+    "Gas Prices Are Climbing Again. Here\u2019s Why Consumers Feel It First",
+    "The Hidden Reason Gas Prices Move Consumer Sentiment So Fast"
+  ],
+  "hook_directions": [
+    "Open on a driver watching the pump cross a painful dollar amount, then contrast that instant emotional reaction with the slower monthly CPI release.",
+    "Start with the question: if inflation is supposedly cooling, why does it still feel expensive every time people fill up?",
+    "Lead with a counterintuitive claim: gas prices matter less in the CPI basket than in the public imagination, yet they can move confidence disproportionately."
+  ],
+  "confidence": 0.88,
+  "model": "gpt-5.4",
+  "generated_at": "2026-03-27T11:47:17.930607"
+}

@@ -1,0 +1,31 @@
+{
+  "summary": "The 30-year mortgage rate at 6.38% is down year over year, but still high enough to keep housing affordability under pressure. That makes the current moment timely: buyers are watching for relief, while the housing market is reacting in uneven ways across prices, demand, and new construction.",
+  "angle": "The real story is not that mortgage rates are simply 'falling'\u2014it is that even modest rate declines can create a misleading sense of relief when home prices and limited inventory keep monthly payments stubbornly elevated.",
+  "watch_outs": [
+    "Avoid overstating a small year-over-year decline in mortgage rates as a full affordability recovery.",
+    "Do not imply a direct one-to-one causal relationship between the Federal Funds Rate and 30-year mortgage rates; Treasury yields, inflation expectations, and mortgage spreads also matter.",
+    "Avoid broad national claims about housing demand without grounding them in current data on prices, starts, and regional inventory differences."
+  ],
+  "source_list": [
+    "Freddie Mac Primary Mortgage Market Survey",
+    "U.S. Census Bureau and HUD Housing Starts data",
+    "Federal Reserve FRED data on mortgage rates and Federal Funds Rate",
+    "National Association of Realtors existing home sales and affordability commentary",
+    "S&P CoreLogic Case-Shiller or Redfin/Zillow home price trend data"
+  ],
+  "novelty": "Differentiate this episode by focusing less on whether rates are up or down and more on why affordability can remain broken even when rates ease. Pair the mortgage-rate move with monthly payment math, home price stickiness, and housing-start constraints to show why the market can feel frozen rather than healed.",
+  "disclosed_synthetic_content": false,
+  "title_variants": [
+    "Mortgage Rates Fell\u2014So Why Does Buying a Home Still Feel Impossible?",
+    "30-Year Mortgage Rates Are Down to 6.38%: Why Housing Still Isn\u2019t Affordable",
+    "The Mortgage Rate Trap: Why Lower Rates Aren\u2019t Fixing the Housing Market"
+  ],
+  "hook_directions": [
+    "Open with a side-by-side monthly payment comparison showing how a lower mortgage rate still leaves buyers stretched when home prices stay high.",
+    "Start by challenging the obvious narrative: 'If mortgage rates are down from last year, why does the housing market still feel frozen?'",
+    "Lead with a counterintuitive stat setup linking 6.38% mortgage rates to weak affordability, limited inventory, and hesitant housing starts."
+  ],
+  "confidence": 0.9,
+  "model": "gpt-5.4",
+  "generated_at": "2026-03-27T11:46:18.865415"
+}

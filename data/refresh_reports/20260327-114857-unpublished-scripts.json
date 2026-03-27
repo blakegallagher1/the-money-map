@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-03-27T11:48:57.865887",
+  "as_of_date": "2026-03-27",
+  "dry_run": false,
+  "with_research": true,
+  "latest_data_path": "data/latest_data.json",
+  "refreshed_count": 4,
+  "scripts": [
+    {
+      "script_path": "data/ep1_v2/script.json",
+      "metric_key": "personal_savings_rate",
+      "old_title": "Americans Are Going Broke \u2014 The Savings Crisis Nobody Talks About",
+      "new_title": "The 4.5 Percent Warning Light Under U.S. Spending",
+      "old_latest_date": "2025-12-01",
+      "new_latest_date": "2026-01-01",
+      "old_latest_value": 3.6,
+      "new_latest_value": 4.5,
+      "old_yoy_pct": -30.77,
+      "new_yoy_pct": -11.76,
+      "word_count": 558
+    },
+    {
+      "script_path": "data/ep2_v2/script.json",
+      "metric_key": "mortgage_rate_30yr",
+      "old_title": "Mortgage Rates Just Hit 6% \u2014 What This Really Means For Home Buyers",
+      "new_title": "Mortgage Rates Fell to 6.38%\u2014So Why Does Housing Still Hurt?",
+      "old_latest_date": "2026-02-26",
+      "new_latest_date": "2026-03-26",
+      "old_latest_value": 5.98,
+      "new_latest_value": 6.38,
+      "old_yoy_pct": -11.54,
+      "new_yoy_pct": -7.4,
+      "word_count": 630
+    },
+    {
+      "script_path": "data/ep4_v2/script.json",
+      "metric_key": "gas_price",
+      "old_title": "Gas Is Under $3 A Gallon \u2014 But That Might Be Bad News",
+      "new_title": "Why $4 Gas Hits Harder Than the Inflation Report",
+      "old_latest_date": "2026-02-23",
+      "new_latest_date": "2026-03-23",
+      "old_latest_value": 2.937,
+      "new_latest_value": 3.961,
+      "old_yoy_pct": -6.26,
+      "new_yoy_pct": 25.35,
+      "word_count": 585
+    },
+    {
+      "script_path": "data/ep5_v2/script.json",
+      "metric_key": "gdp_growth",
+      "old_title": "GDP Growth Just Collapsed 26% \u2014 Is A Recession Coming?",
+      "new_title": "GDP Fell to 0.7 Percent... Why Doesn\u2019t It Feel Worse?",
+      "old_latest_date": "2025-10-01",
+      "new_latest_date": "2025-10-01",
+      "old_latest_value": 1.4,
+      "new_latest_value": 0.7,
+      "old_yoy_pct": -26.32,
+      "new_yoy_pct": -63.16,
+      "word_count": 581
+    }
+  ]
+}
